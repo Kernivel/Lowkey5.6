@@ -12,6 +12,7 @@
 #include "Weapon/Ammo/AmmoObject.h"
 #include "Item.h"
 #include "Weapon/Weapon.h"
+#include "Weapon/Ammo/Ammo.h"
 #include "InventoryComponent.generated.h"
 
 
@@ -49,7 +50,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	int MaxItemsCount = 3; // Maximum number of weapons in the weapon inventory
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	int MaxAmmosCount = 3; // Maximum number of weapons in the weapon inventory
+	int MaxAmmosCount = 8; // Maximum number of Ammos in the ammo inventory
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	UDataTable* WeaponDataTable; // Data table containing weapon data
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
@@ -77,7 +78,12 @@ public:
 	uint8 GetAmmoOfType(const EWeaponType WeaponType) const; // Get the amount of ammo of a specific type
 	UFUNCTION(BlueprintCallable, Category = "Fetch")
 	uint8 RetreiveAmmoOfType(const EWeaponType WeaponType,const uint8 AmmoCount); // Find the ammo of a specific type and remove the specified amount from the inventory
-
+	UFUNCTION(BlueprintCallable, Category = "Add")
+	bool AddItemToInventory(AItem* Item); // Add an item to the inventory
+	UFUNCTION(BlueprintCallable, Category = "Add")
+	bool AddWeaponToInventoryWeapon(AWeapon* Weapon); // Add an item to the inventory
+	UFUNCTION(BlueprintCallable, Category = "Add")
+	bool AddAmmoToInventory(AAmmo* Ammo); // Add an item to the inventory
 	/****************** Management end *************/
 	/*************************
 	* Protected Functions    *

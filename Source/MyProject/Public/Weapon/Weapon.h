@@ -31,13 +31,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
 	bool InitializeAccessories();
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	FORCEINLINE UWeaponObject* GetWeaponObject() const { return WeaponObject; }
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	USkeletalMeshComponent* WeaponMesh;
 	UFUNCTION(BlueprintCallable, Category = "Fire")
 	bool Fire();
+	UFUNCTION(BlueprintCallable, Category = "Getter")
+	UWeaponObject* GetWeaponObject();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	USkeletalMeshComponent* WeaponMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	bool bIsFiring = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Muzzle")
@@ -46,6 +47,7 @@ public:
 	FVector MuzzleLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Muzzle")
 	FRotator MuzzleRotation;
+	void BeginPlay() override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data table")
@@ -54,7 +56,6 @@ protected:
 	FTransform GetMuzzleWorldTransform() const;
 private:
 	bool InitMesh(bool FirstPersonView);
-	UWeaponObject* WeaponObject;
 	FTimerHandle FireTimerHandle; // Timer handle for firing
 	void ResetFireState();
 };

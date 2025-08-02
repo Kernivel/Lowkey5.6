@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
+#include "ItemObject.h"
 #include "Item.generated.h"
 
 UCLASS(Blueprintable)
@@ -20,12 +21,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	USphereComponent* CollisionSphere;
 private:
 	bool InitCollisionSphere();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	bool bIsPickedUp = false; // State to check if the item is picked up
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	bool bCanBePickedUp = true; // State to check if the item can be picked up
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UItemObject* ItemObject; // Item object data
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	USphereComponent* CollisionSphere;
 };

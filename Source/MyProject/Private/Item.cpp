@@ -13,7 +13,11 @@ AItem::AItem()
 
 bool AItem::InitCollisionSphere() {
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
+	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionSphere->SetupAttachment(RootComponent);
+	CollisionSphere->SetCollisionObjectType(ECC_WorldDynamic);
+	CollisionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionSphere->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	CollisionSphere->SetSphereRadius(50.0f); // Set the radius of the sphere
 	return true;
 }

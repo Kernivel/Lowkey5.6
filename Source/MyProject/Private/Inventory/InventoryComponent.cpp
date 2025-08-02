@@ -94,7 +94,7 @@ uint8 UInventoryComponent::SpawnWeaponsFromInventory(AActor* Outer, bool FirstPe
 	return SpawnedWeaponsCount;
 }
 
-/* Spawn a Weapon Actor in the world */
+/* Spawn a Weapon Actor in the world and attach it to the OuterActor */
 AWeapon* UInventoryComponent::SpawnWeaponItem(AActor* Outer, UWeaponObject* WeaponData, bool FirstPersonView)
 {
 	if (Outer == nullptr)
@@ -116,6 +116,9 @@ AWeapon* UInventoryComponent::SpawnWeaponItem(AActor* Outer, UWeaponObject* Weap
 		/* This Initialize covers mesh spawn an animations attach */
 		WeaponItem->Initialize(WeaponData, FirstPersonView);
 		WeaponItem->AttachToActor(Outer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		WeaponItem->bCanBePickedUp = false;
+		WeaponItem->bIsPickedUp = true; // Mark the weapon as picked up
+		WeaponItem->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Disable collision for the weapon item
 	}
 	else
 	{
@@ -186,3 +189,98 @@ uint8 UInventoryComponent::RetreiveAmmoOfType(const EWeaponType WeaponType,const
 	}
 	return TotalAmmoRemoved;
 }
+bool UInventoryComponent::AddWeaponToInventoryWeapon(AWeapon* Weapon)
+{
+	if (Weapon == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddWeaponToInventoryWeapon: Cannot add null Weapon to inventory."));
+		return false;
+	}
+	if (!IsValid(Weapon->ItemObject)) {
+		UE_LOG(LogTemp, Error, TEXT("AddWeaponToInventoryWeapon: Invalid ItemObject. Cannot initialize animations."));
+		return false; // Invalid item object
+	}
+	UWeaponObject* WeaponObject = Cast<UWeaponObject>(Weapon->ItemObject);
+	if (!IsValid(WeaponObject))
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddWeaponToInventoryWeapon: WeaponObject is null for weapon: %s. Cannot add to inventory."), *Weapon->GetName());
+
+		return false; // Invalid weapon object
+	}
+	if (this->InventoryWeapons.Num() >= this->MaxWeaponsCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddWeaponToInventoryWeapon: Cannot add weapon: %s to inventory. Maximum weapons count reached."), *WeaponObject->GetName());
+		return false;
+	}
+	Weapon->AttachToActor(this->GetOwner(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	this->SpawnedWeapons.Add(Weapon); // Add the spawned weapon to the array
+	this->InventoryWeapons.Add(WeaponObject);
+	UE_LOG(LogTemp, Log, TEXT("AddWeaponToInventoryWeapon: Added weapon: %s to inventory."), *WeaponObject->GetName());
+	/* Don't destroy the weapon as it's only attached to the character */
+	return true;
+}
+
+bool UInventoryComponent::AddAmmoToInventory(AAmmo* Ammo)
+{
+	if (Ammo == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddAmmoToInventory: Cannot add null ammo to inventory."));
+		return false;
+	}
+	if (!IsValid(Ammo->ItemObject)) {
+		UE_LOG(LogTemp, Error, TEXT("AddAmmoToInventory: AddWeaponToInventoryWeapon: Invalid ItemObject. Cannot initialize animations."));
+		return false; // Invalid item object
+	}
+	UAmmoObject* AmmoObject = Cast<UAmmoObject>(Ammo->ItemObject);
+	if (!IsValid(AmmoObject))
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddAmmoToInventory: AmmoObject is null for Ammo: %s. Cannot add to inventory."), *Ammo->GetName());
+
+		return false; // Invalid weapon object
+	}
+	if (this->InventoryAmmo.Num() >= this->MaxAmmosCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddAmmoToInventory: Cannot add ammo: %s to inventory. Maximum ammo count reached."), *AmmoObject->GetName());
+		return false;
+	}
+	this->InventoryAmmo.Add(AmmoObject);
+	UE_LOG(LogTemp, Log, TEXT("AddAmmoToInventory: Added ammo: %s to inventory."), *AmmoObject->GetName());
+	Ammo->Destroy(); // Destroy the ammo actor after adding to inventory
+	return true;
+}
+
+bool UInventoryComponent::AddItemToInventory(AItem* Item)
+{
+	if (Item == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cannot add null item to inventory."));
+		return false;
+	}
+
+
+	if(Cast<AWeapon>(Item))
+	{
+		AWeapon* Weapon = Cast<AWeapon>(Item);
+		return this->AddWeaponToInventoryWeapon(Weapon);
+	} else if (Cast<AAmmo>(Item))
+	{
+		UAmmoObject* AmmoObject = Cast<UAmmoObject>(Item);
+		
+	}
+	UItemObject* ItemObject = Item->ItemObject;
+	if(ItemObject == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ItemObject is null for item: %s. Cannot add to inventory."), *Item->GetName());
+		return false;
+	}
+	if (this->InventoryItems.Num() >= this->MaxItemsCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot add item: %s to inventory. Maximum items count reached."), *ItemObject->GetName());
+		return false;
+	}
+	this->InventoryItems.Add(ItemObject);
+	UE_LOG(LogTemp, Log, TEXT("Added item: %s to inventory."), *ItemObject->GetName());
+	Item->Destroy(); // Destroy the item actor after adding to inventory
+	return true;
+}
+

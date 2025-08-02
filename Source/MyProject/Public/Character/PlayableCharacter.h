@@ -53,9 +53,22 @@ public:
 	void SaveWeapons();
 	UFUNCTION(BlueprintCallable, Category = "Save")
 	void LoadWeapons();
-
+	
+	/************************
+	* Instancing functions  *
+	*************************/
+	//UFUNCTION(BlueprintCallable, Category = "Instanciate") Already defined in CustomCharacter.h
 	void InstanciateAllWeaponItems();
+	//UFUNCTION(BlueprintCallable, Category = "Instanciate") Already defined in CustomCharacter.h
 	void InstanciateWeaponItem(UWeaponObject* Weapon);
+
+
+	/************************
+	*Scanning functions     *
+	*************************/
+	UFUNCTION(BlueprintCallable, Category = "Scanning")
+	AItem* ScanForPickableItems();
+
 protected:
 	class UInputMappingContext* InputMapping = NULL;
 
@@ -92,6 +105,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
 	FTransform CurrentWeaponTransform = FTransform::Identity;
 
+	/* Storing the current looked at Item */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scanning")
+	AItem* CurrentLookedAtItem = nullptr;
 
 	virtual void AttachWeaponToSocket(AWeapon* Weapon, FName SocketName) override;
 

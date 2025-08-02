@@ -183,10 +183,16 @@ void ACustomCharacter::InstanciateWeaponItem(UWeaponObject* Weapon){
 
 void ACustomCharacter::AttachWeaponsToSockets()
 {
-	UE_LOG(LogTemp, Log, TEXT("ACu Attaching weapons to sockets..."));
+	UE_LOG(LogTemp, Log, TEXT("AttachWeaponsToSockets ACu: Attaching weapons to sockets..."));
 	for(AWeapon* ChildWeapon : this->Inventory->SpawnedWeapons){
 		UE_LOG(LogTemp, Log, TEXT("ACu Attaching weapon: %s"), *ChildWeapon->GetName());
-		EWeaponType WeaponType = ChildWeapon->GetWeaponObject()->GetWeaponType(); // Get the socket name from the weapon item
+		UWeaponObject* WeaponObject = ChildWeapon->GetWeaponObject();
+		if(WeaponObject == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("ACu AttachWeaponsToSockets: WeaponObject is null for weapon: %s."), *ChildWeapon->GetName());
+			continue; // Invalid weapon object
+		}
+		EWeaponType WeaponType = WeaponObject->GetWeaponType(); // Get the socket name from the weapon item
 		/* If there are no matching socket, the wepaon will be attached to the back */
 		FName SocketName = FName(TEXT("BackSocket"));
 
@@ -194,16 +200,16 @@ void ACustomCharacter::AttachWeaponsToSockets()
 		if (ACustomCharacter::WeaponSocketMap.Contains(WeaponType))
 		{
 				SocketName = ACustomCharacter::WeaponSocketMap[WeaponType]; // Get the socket name from the map
-				UE_LOG(LogTemp, Log, TEXT("ACu Using socket: %s for weapon type: %s"), *SocketName.ToString(), *UEnum::GetValueAsString(WeaponType));
+				UE_LOG(LogTemp, Log, TEXT("AttachWeaponsToSockets ACu: Using socket: %s for weapon type: %s"), *SocketName.ToString(), *UEnum::GetValueAsString(WeaponType));
 		}
 
 
 		/* The current child weapon is the equiped weapon so we need to spawn it in the hand */
 		/* Check for OOB first */
-		if(this->Inventory->CurrentlyEquipedIndex < this->Inventory->InventoryWeapons.Num() && ChildWeapon->GetWeaponObject() == this->Inventory->InventoryWeapons[this->Inventory->CurrentlyEquipedIndex])
+		if(this->Inventory->CurrentlyEquipedIndex < this->Inventory->InventoryWeapons.Num() && WeaponObject == this->Inventory->InventoryWeapons[this->Inventory->CurrentlyEquipedIndex])
 		{
 			SocketName = FName(TEXT("RightHandSocket")); // Attach the current weapon to the right hand socket
-			UE_LOG(LogTemp, Log, TEXT("ACu Override Equiped weapon: %s to socket: %s"), *ChildWeapon->GetName(), *SocketName.ToString());
+			UE_LOG(LogTemp, Log, TEXT("AttachWeaponsToSockets ACu: Override Equiped weapon: %s to socket: %s"), *ChildWeapon->GetName(), *SocketName.ToString());
 		}
 		ACustomCharacter::AttachWeaponToSocket(ChildWeapon, SocketName);
 	}
@@ -257,9 +263,14 @@ bool ACustomCharacter::CanReload() const {
 	{
 		AWeapon* CurrentWeapon = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex];
 		/* Check if Current Ammo is under the maximum ammo the weapon can hold */
-		if (CurrentWeapon && CurrentWeapon->GetWeaponObject() && CurrentWeapon->GetWeaponObject()->CurrentAmmo < CurrentWeapon->GetWeaponObject()->AmmoCapacity)
+		UWeaponObject* WeaponObject = CurrentWeapon->GetWeaponObject();
+		if (!IsValid(WeaponObject)) {
+			UE_LOG(LogTemp, Warning, TEXT("CanReload: Current weapon object is null. Cannot reload."));
+			return false; // Cannot reload if the weapon object is null
+		}
+		if (CurrentWeapon && WeaponObject && WeaponObject->CurrentAmmo < WeaponObject->AmmoCapacity)
 		{
-			if(this->Inventory->GetAmmoOfType(CurrentWeapon->GetWeaponObject()->GetWeaponType()) <= 0)
+			if(this->Inventory->GetAmmoOfType(WeaponObject->GetWeaponType()) <= 0)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No ammo of the correct type found in inventory."));
 				return false; // Cannot reload if no ammo of the correct type is available
@@ -277,21 +288,21 @@ uint8 ACustomCharacter::Reload()
 	{
 		return 0;
 	}
-	UWeaponObject* CurrentWeaponObject = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex]->GetWeaponObject();
-	if(CurrentWeaponObject == nullptr)
+	UWeaponObject* WeaponObject = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex]->GetWeaponObject();
+	if(!IsValid(WeaponObject))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Current weapon object is null. Cannot reload."));
 		return 0; // Cannot reload if the current weapon object is null
 	}
-	if(CurrentWeaponObject->Magazine == nullptr)
+	if(WeaponObject->Magazine == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Current weapon has no magazine. Cannot reload."));
 		return 0; // Cannot reload if the current weapon has no magazine
 	}
 	// Get the current ammo type
-	EWeaponType WeaponType = CurrentWeaponObject->GetWeaponType();
-	uint8 CurrentAmmo = CurrentWeaponObject->CurrentAmmo; // Get the current ammo in the weapon
-	uint8 AmmoToReload = CurrentWeaponObject->Magazine->MagazineSize - CurrentAmmo; // Calculate how much ammo we need to reload
+	EWeaponType WeaponType = WeaponObject->GetWeaponType();
+	uint8 CurrentAmmo = WeaponObject->CurrentAmmo; // Get the current ammo in the weapon
+	uint8 AmmoToReload = WeaponObject->Magazine->MagazineSize - CurrentAmmo; // Calculate how much ammo we need to reload
 	this->Inventory->RetreiveAmmoOfType(WeaponType, AmmoToReload);
 	return ReloadedAmmount;
 }
@@ -361,20 +372,27 @@ bool ACustomCharacter::IsCurrentWeaponValid() const
 	// Check proper initialization of the Inventory component
 	if(this->Inventory == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Inventory is null. Cannot check current weapon validity."));
+		UE_LOG(LogTemp, Warning, TEXT("IsCurrentWeaponValid: Inventory is null. Cannot check current weapon validity."));
 		return false; // Inventory is not initialized
 	}
 	if(!this->Inventory->InventoryWeapons.IsValidIndex(this->Inventory->CurrentlyEquipedIndex))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentlyEquipedIndex is out of bounds. Cannot check current weapon validity."));
+		UE_LOG(LogTemp, Warning, TEXT("IsCurrentWeaponValid: CurrentlyEquipedIndex is out of bounds. Cannot check current weapon validity."));
 		return false; // Index is out of bounds
 	}
 	if (this->Inventory->SpawnedWeapons.IsValidIndex(this->Inventory->CurrentlyEquipedIndex))
 	{
 		AWeapon* CurrentWeapon = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex];
-		if(CurrentWeapon && CurrentWeapon->GetWeaponObject())
+
+		if(CurrentWeapon)
 		{
-			return true; // The current weapon is valid
+			UWeaponObject* WeaponObject = CurrentWeapon->GetWeaponObject();
+			if (!IsValid(WeaponObject))
+			{
+				UE_LOG(LogTemp, Error, TEXT("IsCurrentWeaponValid: WeaponObject is null for weapon: %s. "), *CurrentWeapon->GetName());
+				return false; // Invalid weapon object
+			}
+			return true; // The current weapon is valid and the index is within bounds
 		}
 	}
 	return false; // The current weapon is not valid or the index is out of bounds

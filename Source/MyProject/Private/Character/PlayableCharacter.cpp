@@ -119,6 +119,8 @@ void APlayableCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/* Scan in front of the player for collisions and if actor is a pickable item */
+	this->CurrentLookedAtItem = APlayableCharacter::ScanForPickableItems();
 }
 
 void APlayableCharacter::GetInputSystem()
@@ -161,13 +163,37 @@ void APlayableCharacter::InstanciateWeaponItem(UWeaponObject* Weapon) {
 	this->Inventory->SpawnWeaponItem(this, Weapon, true);
 }
 
+AItem* APlayableCharacter::ScanForPickableItems()
+{
+	/* Scan for items in front of the player */
+	FHitResult HitResult;
+	FVector Start = CameraComponent->GetComponentLocation();
+	FVector ForwardVector = CameraComponent->GetForwardVector();
+	FVector End = Start + (ForwardVector * 300.f); // Adjust the distance as needed
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this); // Ignore self
+	// Perform the line trace
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, CollisionParams))
+	{
+		//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1.f, 0, 1.f); // Draw a debug line for visualization
+		AActor* HitOwner = HitResult.GetComponent() ? HitResult.GetComponent()->GetOwner() : HitResult.GetActor();
+		AItem* HitItem = Cast<AItem>(HitOwner);
+		/* Check if HitItem is found and if the conditions to pick it up are complete */
+		if (HitItem && HitItem->bCanBePickedUp && !HitItem->bIsPickedUp)
+		{
+			return HitItem; // Return the first item found
+		}
+	}
+	return nullptr; // No item found
+}
+
 
 void APlayableCharacter::Fire()
 {
 	/* Call fire function on currently equiped weapon */
 	if (!APlayableCharacter::IsCurrentWeaponValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No weapons spawned! Cannot fire."));
+		UE_LOG(LogTemp, Warning, TEXT("Fire: No weapons spawned! Cannot fire."));
 		return;
 	}
 	else {
@@ -181,7 +207,6 @@ void APlayableCharacter::Fire()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("Weapon fired successfully!"));
 			/* Do the line trace */
 			TArray<FHitResult> HitResultArray;
 			FCollisionQueryParams TraceParams(FName(TEXT("DamageTrace")), true, this);
@@ -222,12 +247,18 @@ void APlayableCharacter::Fire()
 					FVector HitLocation = HitResult.ImpactPoint;
 					FVector HitNormal = HitResult.ImpactNormal;
 					FRotator HitRotation = HitResult.ImpactNormal.Rotation();
-					UE_LOG(LogTemp, Warning, TEXT("Hit detected."));
-					float Damage = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex]->GetWeaponObject()->BaseDamage;
+					//UE_LOG(LogTemp, Warning, TEXT("Hit detected."));
+					UWeaponObject* WeaponObject = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex]->GetWeaponObject();
+					if(!IsValid(WeaponObject))
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Fire: WeaponObject is null! Cannot apply damage."));
+						return; // Invalid weapon object
+					}
+					float Damage = WeaponObject->BaseDamage;
 					UGameplayStatics::ApplyPointDamage(HitActor,Damage,HitNormal, HitResult,GetOwner()->GetInstigatorController(),this,UDamageType::StaticClass());
 					FVector BoxExtent = FVector(5.f, 5.f, 5.f); // Small box extent for the debug box
 					// Draw a debug box at the hit location
-					DrawDebugBox(GetWorld(), HitLocation, BoxExtent, FColor::Blue, false, 1.f, 0, 1.f);
+					//DrawDebugBox(GetWorld(), HitLocation, BoxExtent, FColor::Blue, false, 1.f, 0, 1.f);
 					if(this->ConcreteImpactEffect != nullptr)
 					{
 						// Spawn the Niagara effect at the hit location
@@ -235,13 +266,13 @@ void APlayableCharacter::Fire()
 					}
 					else
 					{
-						UE_LOG(LogTemp, Warning, TEXT("ConcreteImpactEffect is null! Cannot spawn effect."));
+						UE_LOG(LogTemp, Warning, TEXT("Fire: ConcreteImpactEffect is null! Cannot spawn effect."));
 					}
 				}
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("No hit detected."));
+				UE_LOG(LogTemp, Warning, TEXT("Fire: No hit detected."));
 			}
 			//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 1.f);
 			// Play the camera shake
@@ -253,26 +284,36 @@ void APlayableCharacter::Fire()
 
 void APlayableCharacter::AttachWeaponsToSockets()
 {
-	UE_LOG(LogTemp, Log, TEXT("APa Attaching weapons to sockets..."));
+	UE_LOG(LogTemp, Log, TEXT("Apa AttachWeaponsToSockets: Attaching weapons to sockets..."));
 	for(AWeapon* ChildWeapon : this->Inventory->SpawnedWeapons)
 	{
-		UE_LOG(LogTemp, Log, TEXT("APa Attaching weapon: %s"), *ChildWeapon->GetName());
-		EWeaponType WeaponType = ChildWeapon->GetWeaponObject()->GetWeaponType(); // Get the socket name from the weapon item
+		UE_LOG(LogTemp, Log, TEXT("Apa AttachWeaponsToSockets: Attaching weapon: %s"), *ChildWeapon->GetName());
+		if (!IsValid(ChildWeapon->ItemObject)) {
+			UE_LOG(LogTemp, Error, TEXT("Apa AttachWeaponsToSockets: Invalid ItemObject. Cannot initialize animations."));
+			return; // Invalid item object
+		}
+		UWeaponObject* WeaponObject = ChildWeapon->GetWeaponObject();
+		if (!IsValid(WeaponObject))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Apa AttachWeaponsToSockets: WeaponObject is null for weapon: %s. Cannot add to inventory."), *ChildWeapon->GetName());
+			return; // Invalid weapon object
+		}
+		EWeaponType WeaponType = WeaponObject->GetWeaponType(); // Get the socket name from the weapon item
 		/* If there are no matching socket, the wepaon will be attached to the back */
 		FName SocketName = FName(TEXT("BackSocket"));
 		/* Get a specific socket if needed (holster...) */
 		if (ACustomCharacter::WeaponSocketMap.Contains(WeaponType))
 		{
 			SocketName = ACustomCharacter::WeaponSocketMap[WeaponType]; // Get the socket name from the map
-			UE_LOG(LogTemp, Log, TEXT("APa Using socket: %s for weapon type: %s"), *SocketName.ToString(), *UEnum::GetValueAsString(WeaponType));
+			UE_LOG(LogTemp, Log, TEXT("Apa AttachWeaponsToSockets: Using socket: %s for weapon type: %s"), *SocketName.ToString(), *UEnum::GetValueAsString(WeaponType));
 			//ChildWeapon->WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
 		}
 		/* The current child weapon is the equiped weapon so we need to spawn it in the hand */
 		/* Check for OOB first */
-		if(this->Inventory->CurrentlyEquipedIndex < this->Inventory->InventoryWeapons.Num() && ChildWeapon->GetWeaponObject() == this->Inventory->InventoryWeapons[this->Inventory->CurrentlyEquipedIndex])
+		if(this->Inventory->CurrentlyEquipedIndex < this->Inventory->InventoryWeapons.Num() && WeaponObject == this->Inventory->InventoryWeapons[this->Inventory->CurrentlyEquipedIndex])
 		{
 			SocketName = FName(TEXT("RightHandSocket")); // Attach the current weapon to the right hand socket
-			UE_LOG(LogTemp, Log, TEXT("APa Override Equiped weapon: %s to socket: %s"), *ChildWeapon->GetName(), *SocketName.ToString());
+			UE_LOG(LogTemp, Log, TEXT("Apa AttachWeaponsToSockets: Override Equiped weapon: %s to socket: %s"), *ChildWeapon->GetName(), *SocketName.ToString());
 			//ChildWeapon->WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson; // Set the weapon mesh to first person type
 		}
 		

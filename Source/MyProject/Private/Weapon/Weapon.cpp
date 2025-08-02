@@ -5,9 +5,23 @@
 
 AWeapon::AWeapon()
 {
-	Super::BeginPlay();
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	RootComponent = WeaponMesh; // Set the root component to the weapon mesh
+}
+
+void AWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+UWeaponObject* AWeapon::GetWeaponObject()
+{
+	if (IsValid(this->ItemObject))
+	{
+		return Cast<UWeaponObject>(this->ItemObject);
+	}
+	UE_LOG(LogTemp, Error, TEXT("GetWeaponObject: ItemObject is not valid. Cannot get weapon object."));
+	return nullptr; // Return nullptr if the item object is not valid
 }
 
 bool AWeapon::Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView)
@@ -16,7 +30,7 @@ bool AWeapon::Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView)
 	{
 		return false; // Invalid weapon object
 	}
-	this->WeaponObject = InWeaponObject;
+	this->ItemObject = InWeaponObject;
 	AWeapon::InitMesh(FirstPersonView);
 	AWeapon::InitializeAnimationData();
 	return true;
@@ -24,35 +38,42 @@ bool AWeapon::Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView)
 
 bool AWeapon::InitMesh(bool FirstPersonView)
 {
-	if(!IsValid(WeaponObject))
+	UWeaponObject* WeaponObject = this->GetWeaponObject();
+	if(!WeaponObject)
 	{
+		UE_LOG(LogTemp, Error, TEXT("InitMesh: Invalid WeaponObject."));
 		return false; // Invalid weapon object
 	}
 	TSoftObjectPtr<USkeletalMesh> SoftSkelMeshReference = WeaponObject->SoftSkelMeshReference;
-	if(SoftSkelMeshReference.IsNull())
-	{
-		UE_LOG(LogTemp, Error, TEXT("SoftSkelMeshReference is null! Cannot initialize weapon mesh."));
-		return false; // Failed to initialize the mesh
-	}
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 
-	Streamable.RequestAsyncLoad(
+	TSharedPtr<FStreamableHandle> Handle = Streamable.RequestAsyncLoad(
 		SoftSkelMeshReference.ToSoftObjectPath(),
 		FStreamableDelegate::CreateLambda([this, SoftSkelMeshReference, FirstPersonView]()
 			{
+				if(!IsValid(this) || SoftSkelMeshReference == nullptr)
+				{
+					UE_LOG(LogTemp, Error, TEXT("Weapon or SoftSkelMeshReference is null during async load."));
+					return; // Early exit if the weapon or reference is invalid
+				}
 				USkeletalMesh* LoadedMesh = SoftSkelMeshReference.Get();
-				if (LoadedMesh && IsValid(WeaponMesh))
+				if (IsValid(LoadedMesh) && IsValid(this->WeaponMesh))
 				{
 					if (FirstPersonView) {
-						WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson; // Set the weapon mesh to first person type
+						this->WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson; // Set the weapon mesh to first person type
 					}
 					// Use your loaded mesh, e.g.:
-					WeaponMesh->SetSkeletalMesh(LoadedMesh);
+					this->WeaponMesh->SetSkeletalMesh(LoadedMesh);
 				}else{
 					UE_LOG(LogTemp, Error, TEXT("Failed to load the skeletal mesh from the provided reference."));
 				}
 			})
 	);
+	if(!Handle.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to request async load for the skeletal mesh."));
+		return false; // Failed to request async load
+	}
 
 	if (this->WeaponMesh!=nullptr) {
 		return true;
@@ -64,21 +85,42 @@ bool AWeapon::InitMesh(bool FirstPersonView)
 bool AWeapon::InitializeAnimationData()
 {
 	UE_LOG(LogTemp, Log, TEXT("Starting loading weapon animations"));
-	if(this->WeaponObject->AnimBPClass.IsValid() || this->WeaponObject->AnimBPClass.ToSoftObjectPath().IsValid())
+	UWeaponObject* WeaponObject = this->GetWeaponObject();
+	if(!WeaponObject)
+	{
+		UE_LOG(LogTemp, Error, TEXT("InitializeAnimationData: Invalid WeaponObject."));
+		return false; // Invalid weapon object
+	}
+	if(WeaponObject->AnimBPClass.IsValid() || WeaponObject->AnimBPClass.ToSoftObjectPath().IsValid())
 	{
 		UE_LOG(LogTemp, Log, TEXT("Animation asset is valid loading weapon animations"));
 		FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-		Streamable.RequestAsyncLoad(
-			this->WeaponObject->AnimBPClass.ToSoftObjectPath(),
-			FStreamableDelegate::CreateLambda([this]()
+		TSharedPtr<FStreamableHandle> Handle = Streamable.RequestAsyncLoad(
+			WeaponObject->AnimBPClass.ToSoftObjectPath(),
+			FStreamableDelegate::CreateLambda([this, WeaponObject]()
 				{
-					UClass* LoadedAnimBPClass = this->WeaponObject->AnimBPClass.Get();
+					if(!IsValid(this) || !IsValid(WeaponObject))
+					{
+						UE_LOG(LogTemp, Error, TEXT("Weapon or WeaponObject is null during async load."));
+						return; // Early exit if the weapon or object is invalid
+					}
+					UClass* LoadedAnimBPClass = WeaponObject->AnimBPClass.Get();
+					if(!LoadedAnimBPClass)
+					{
+						UE_LOG(LogTemp, Error, TEXT("Failed to load the Animation Blueprint Class from the provided reference."));
+						return; // Early exit if the animation blueprint class is invalid
+					}
 					if (LoadedAnimBPClass && this->WeaponMesh)
 					{
 						this->WeaponMesh->SetAnimInstanceClass(LoadedAnimBPClass);
 					}
 				})
 		);
+		if (!Handle.IsValid())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to request async load for the skeletal mesh."));
+			return false; // Failed to request async load
+		}
 		UE_LOG(LogTemp, Log, TEXT("Async loaded this Weapon animation"));
 		return true;
 	}
@@ -101,19 +143,20 @@ FTransform AWeapon::GetMuzzleWorldTransform() const
 
 bool AWeapon::Fire()
 {
-	if(!this->WeaponObject)
+	UWeaponObject* WeaponObject = this->GetWeaponObject();
+	if(!WeaponObject)
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponObject is not initialized. Cannot fire."));
-		return false; // Weapon object is not initialized
+		UE_LOG(LogTemp, Error, TEXT("Fire: Invalid WeaponObject."));
+		return false; // Invalid weapon object
 	}
-	if(this->WeaponObject->CurrentAmmo <= 0)
+	if(WeaponObject->CurrentAmmo <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No ammo left to fire!"));
+		UE_LOG(LogTemp, Warning, TEXT("Fire: No ammo left to fire!"));
 		return false; // No ammo left
 	}
 	if(this->bIsFiring)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Weapon is already firing!"));
+		UE_LOG(LogTemp, Warning, TEXT("Fire: Weapon is already firing!"));
 		return false; // Already firing
 	}
 	this->bIsFiring = true;
@@ -121,7 +164,7 @@ bool AWeapon::Fire()
 		this->FireTimerHandle, 
 		this, 
 		&AWeapon::ResetFireState,
-		this->WeaponObject->DelayBetweenShots, 
+		WeaponObject->DelayBetweenShots, 
 		false
 	);
 	if(MuzzleFlash)
@@ -148,11 +191,18 @@ void AWeapon::ResetFireState()
 
 bool AWeapon::InitializeAccessories()
 {
+	UWeaponObject* WeaponObject = this->GetWeaponObject();
+	if (!IsValid(WeaponObject))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Fire: Invalid WeaponObject."));
+		return false; // Invalid weapon object
+	}
+
 	// Initialize main and optional accessories if needed
-	if (this->WeaponObject)
+	if (WeaponObject)
 	{
 		// Example: Load main accessories
-		for (const auto& AccessoryPair : this->WeaponObject->MainAccessories)
+		for (const auto& AccessoryPair : WeaponObject->MainAccessories)
 		{
 			const FString& AccessoryName = AccessoryPair.Key;
 			const UAccessoryObject* AccessoryObject = AccessoryPair.Value;
