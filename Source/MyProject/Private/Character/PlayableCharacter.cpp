@@ -121,6 +121,7 @@ void APlayableCharacter::Tick(float DeltaTime)
 
 	/* Scan in front of the player for collisions and if actor is a pickable item */
 	this->CurrentLookedAtItem = APlayableCharacter::ScanForPickableItems();
+	this->LoopOverCurvePlaybacks(DeltaTime);
 }
 
 void APlayableCharacter::GetInputSystem()
@@ -277,6 +278,7 @@ void APlayableCharacter::Fire()
 			//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 1.f);
 			// Play the camera shake
 			OnFire.Broadcast(); // Broadcast the OnFire event
+			this->StartNewCurvePlayback(); // Start a new curve playback for recoil
 
 		}
 	}
@@ -431,4 +433,42 @@ void APlayableCharacter::LoadWeapons()
 		UE_LOG(LogTemp, Error, TEXT("Failed to load PlayerSave!"));
 	}
 	UE_LOG(LogTemp, Log, TEXT("Loaded %d weapons from PlayerSave."), LoadedWeaponsCount);
+}
+
+void APlayableCharacter::StartNewCurvePlayback()
+{
+	// Start a new curve playback
+	if (IsValid(this->CCurrentWeaponHandRotationCurve) && IsValid(this->CCurrentWeaponHandLocationCurve))
+	{
+		this->RecoilCurves.Add(FCurvePlayBack(this->CCurrentWeaponHandRotationCurve, this->CCurrentWeaponHandLocationCurve));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Recoil curve is not set! Cannot start playback."));
+	}
+}
+
+void APlayableCharacter::LoopOverCurvePlaybacks(float DeltaTime)
+{
+	/* Reset Transform values before adding */
+	this->CurrentWeaponTransform = FTransform::Identity; // Reset the transform to identity before applying curves
+	for (int32 i = this->RecoilCurves.Num() - 1; i >= 0; --i)
+	{
+		FCurvePlayBack& Curve = this->RecoilCurves[i];
+		Curve.CurrentTime += DeltaTime*Curve.PlayRate;
+		if (Curve.GetCurveIsOver())
+		{
+			this->RecoilCurves.RemoveAt(i);
+			continue;
+		}
+		FVector NewLocation = Curve.CHandLocationCurve->GetVectorValue(Curve.CurrentTime);
+		CurrentWeaponTransform = MathUtils::AddVectorToTransformLocation(this->CurrentWeaponTransform, NewLocation);
+		FVector NewRotation = Curve.CHandRotationCurve->GetVectorValue(Curve.CurrentTime);
+		CurrentWeaponTransform = MathUtils::AddVectorToTransformRotation(this->CurrentWeaponTransform, NewRotation);
+	}
+	//UE_LOG(LogTemp, Log, TEXT("LoopOverCurvePlaybacks: Looped over %d curves "), this->RecoilCurves.Num());
+	/*UE_LOG(LogTemp, Log, TEXT("Final Weapon Transform: Location: %s, Rotation: %s"),
+		*CurrentWeaponTransform.GetLocation().ToString(),
+		*CurrentWeaponTransform.GetRotation().Rotator().ToString());
+	*/
 }

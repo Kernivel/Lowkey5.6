@@ -8,11 +8,6 @@ struct FCurvePlayBack
 	GENERATED_BODY()
 	
 	// ADD UPROPERTY() to ensure garbage collection works correctly
-	UPROPERTY()
-	UCurveVector* CCameraRotationCurve = nullptr;
-	UPROPERTY()
-	UCurveVector* CCameraLocationCurve = nullptr;
-	UPROPERTY()
 	UCurveVector* CHandRotationCurve = nullptr;
 	UPROPERTY()
 	UCurveVector* CHandLocationCurve = nullptr;
@@ -22,8 +17,7 @@ struct FCurvePlayBack
 
 	/* Default constructor, should be avoided */
 	FCurvePlayBack()
-		: CCameraRotationCurve(nullptr), CCameraLocationCurve(nullptr),
-		CHandRotationCurve(nullptr), CHandLocationCurve(nullptr),
+		: CHandRotationCurve(nullptr), CHandLocationCurve(nullptr),
 		CurrentTime(0.0f), PlayRate(1.0f), bIsPlaying(true)
 	{
 	}
@@ -34,13 +28,9 @@ struct FCurvePlayBack
 
 
 	FCurvePlayBack(
-		UCurveVector* InCameraCurveRotation,
-		UCurveVector* InCameraCurveLocation,
 		UCurveVector* InHandCurveRotation,
 		UCurveVector* InHandCurveLocation)
-		: CCameraRotationCurve(InCameraCurveRotation)
-		, CCameraLocationCurve(InCameraCurveLocation)
-		, CHandRotationCurve(InHandCurveRotation)
+		: CHandRotationCurve(InHandCurveRotation)
 		, CHandLocationCurve(InHandCurveLocation)
 		, CurrentTime(0.0f)
 		, PlayRate(3.5f)
@@ -51,11 +41,11 @@ struct FCurvePlayBack
 	bool GetCurveIsOver() const
 	{
 
-		if (CCameraRotationCurve != nullptr)
+		if (CHandLocationCurve != nullptr)
 		{
 			float MinTime = 0.0f; // Assuming you want to check from the start of the curve
 			float MaxTime = 0.0f; // This will be set by the curve itself
-			CCameraRotationCurve->GetTimeRange(MinTime, MaxTime);
+			CHandLocationCurve->GetTimeRange(MinTime, MaxTime);
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Curve min: ") + FString::FromFloat(this->CurrentTime));
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Curve min: ") + FString::FromFloat(MinTime) + TEXT(" Curve max : ") + FString::FromFloat(MaxTime));
 

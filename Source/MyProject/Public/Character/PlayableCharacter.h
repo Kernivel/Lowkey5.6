@@ -69,6 +69,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Scanning")
 	AItem* ScanForPickableItems();
 
+	/*************************
+	* Recoil		         *
+	*************************/
+	/* Curves variables for Recoil */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
+	TArray<FCurvePlayBack> RecoilCurves; // Array of curves for recoil playback
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
+	UCurveVector* CCurrentWeaponHandRotationCurve;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
+	UCurveVector* CCurrentWeaponHandLocationCurve;
+	UFUNCTION(BlueprintCallable, Category = "Recoil")
+	void StartNewCurvePlayback();
+	UFUNCTION(BlueprintCallable, Category = "Recoil")
+	void LoopOverCurvePlaybacks(float DeltaTime);
+
 protected:
 	class UInputMappingContext* InputMapping = NULL;
 
@@ -87,21 +102,11 @@ protected:
 
 	virtual void SetupPlayerInputCallBacks();
 
-	/* Curves variables for Recoil */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
-	UCurveVector* CCurrentWeaponCameraRotationCurve;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
-	UCurveVector* CCurrentWeaponCameraLocationCurve;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
-	UCurveVector* CCurrentWeaponHandRotationCurve;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
-	UCurveVector* CCurrentWeaponHandLocationCurve;
+
 	/* DONT USE POINTERS FOR STRUCT IN TARRAYS */
 
 
 	/* Recoils Transform variables */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
-	FTransform CurrentCameraTransform = FTransform::Identity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
 	FTransform CurrentWeaponTransform = FTransform::Identity;
 

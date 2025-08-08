@@ -197,7 +197,7 @@ bool UInventoryComponent::AddWeaponToInventoryWeapon(AWeapon* Weapon)
 		return false;
 	}
 	if (!IsValid(Weapon->ItemObject)) {
-		UE_LOG(LogTemp, Error, TEXT("AddWeaponToInventoryWeapon: Invalid ItemObject. Cannot initialize animations."));
+		UE_LOG(LogTemp, Error, TEXT("AddWeaponToInventoryWeapon: Invalid ItemObject."));
 		return false; // Invalid item object
 	}
 	UWeaponObject* WeaponObject = Cast<UWeaponObject>(Weapon->ItemObject);
