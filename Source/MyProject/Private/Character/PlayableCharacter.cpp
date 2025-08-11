@@ -198,7 +198,8 @@ void APlayableCharacter::Fire()
 		return;
 	}
 	else {
-		if (this->bIsRunning) {
+		/* Check for conditions that would stop the character from shooting */
+		if (this->bIsRunning || this->bIsReloading) {
 			return; // Do not fire while running
 		}
 		if (!this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex]->Fire())

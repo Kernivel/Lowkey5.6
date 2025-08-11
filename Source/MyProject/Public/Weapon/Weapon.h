@@ -23,9 +23,12 @@ class MYPROJECT_API AWeapon : public AItem
 {
 	GENERATED_BODY()
 public:
-	AWeapon();
+	AWeapon(const FObjectInitializer& ObjectInitializer);
+	void PostInitializeComponents() override; // Override to initialize components after construction
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
 	bool Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView);
+	UFUNCTION(BlueprintCallable, Category = "Initialization")
+	void InitializeWeaponObject();
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
 	bool InitializeAnimationData();
 	UFUNCTION(BlueprintCallable, Category = "Initialization")

@@ -107,6 +107,8 @@ public:
 	bool bIsAiming = false; // Boolean to check if the character is aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsCrouching = false; // Boolean to check if the character is crouching
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Action")
+	bool bIsReloading = false; // Boolean to check if the character is reloading
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Trajectory")
 	UCharacterTrajectoryComponent* TrajectoryComponent;
 

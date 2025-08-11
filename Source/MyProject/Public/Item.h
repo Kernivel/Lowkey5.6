@@ -15,8 +15,8 @@ class MYPROJECT_API AItem : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	AItem();
-
+	AItem(const FObjectInitializer& ObjectInitializer);
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

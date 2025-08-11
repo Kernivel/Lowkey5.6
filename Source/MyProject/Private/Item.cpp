@@ -4,12 +4,14 @@
 #include "Item.h"
 
 // Sets default values
-AItem::AItem()
+AItem::AItem(const FObjectInitializer& ObjectInitializer)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	AItem::InitCollisionSphere();
+	ItemObject = CreateDefaultSubobject<UItemObject>(TEXT("ItemObject")); // Initialize ItemObject
 }
+
 
 bool AItem::InitCollisionSphere() {
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));

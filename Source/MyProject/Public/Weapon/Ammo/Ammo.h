@@ -11,7 +11,7 @@ class AAmmo :
 	GENERATED_BODY()
 public:
     // Sets default values for this actor's properties
-    AAmmo();
+    AAmmo(const FObjectInitializer &ObjectInitializer);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	UStaticMeshComponent* AmmoMesh; // Mesh component for the ammo
 };

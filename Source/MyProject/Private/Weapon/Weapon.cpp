@@ -3,8 +3,10 @@
 
 #include "Weapon/Weapon.h"
 
-AWeapon::AWeapon()
+AWeapon::AWeapon(const FObjectInitializer& ObjectInitializer):
+	Super(ObjectInitializer.DoNotCreateDefaultSubobject(TEXT("ItemObject")))
 {
+	ItemObject = CreateDefaultSubobject<UWeaponObject>(TEXT("WeaponObject")); // Initialize ItemObject
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	RootComponent = WeaponMesh; // Set the root component to the weapon mesh
 }
@@ -12,6 +14,13 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AWeapon::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	// Initialize the weapon object after components are initialized
+	AWeapon::InitializeWeaponObject();
 }
 
 UWeaponObject* AWeapon::GetWeaponObject()
@@ -34,6 +43,11 @@ bool AWeapon::Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView)
 	AWeapon::InitMesh(FirstPersonView);
 	AWeapon::InitializeAnimationData();
 	return true;
+}
+
+void AWeapon::InitializeWeaponObject()
+{
+	this->ItemObject = NewObject<UWeaponObject>(this, UWeaponObject::StaticClass());
 }
 
 bool AWeapon::InitMesh(bool FirstPersonView)
