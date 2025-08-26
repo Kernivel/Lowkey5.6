@@ -213,10 +213,12 @@ bool UInventoryComponent::AddWeaponToInventoryWeapon(AWeapon* Weapon)
 		return false;
 	}
 	Weapon->AttachToActor(this->GetOwner(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	this->SpawnedWeapons.Add(Weapon); // Add the spawned weapon to the array
 	this->InventoryWeapons.Add(WeaponObject);
 	UE_LOG(LogTemp, Log, TEXT("AddWeaponToInventoryWeapon: Added weapon: %s to inventory."), *WeaponObject->GetName());
-	/* Don't destroy the weapon as it's only attached to the character */
+	/* Destroy weapon item and reinstanciate it as a First Person Mesh */
+	Weapon->Destroy();
+	AWeapon* NewWeapon = this->SpawnWeaponItem(this->GetOwner(), WeaponObject, true); // Spawn the weapon as a first person mesh
+	this->SpawnedWeapons.Add(NewWeapon); // Add the spawned weapon to the array
 	return true;
 }
 

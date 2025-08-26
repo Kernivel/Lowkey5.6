@@ -61,6 +61,15 @@
 		{
 			"Name": "GameplayCameras",
 			"Enabled": true
+		},
+		{
+			"Name": "KiBLII",
+			"Enabled": true,
+			"MarketplaceURL": "https://www.fab.com/listings/97745184-2b76-48c6-b29e-dc8d4f1df14b"
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	]
 }

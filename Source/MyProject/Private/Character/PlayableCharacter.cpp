@@ -2,7 +2,8 @@
 
 
 #include "Character/PlayableCharacter.h"
-
+#include "AbilitySystem/CustomAbilitySystemComponent.h"
+#include "Player/CustomPlayerState.h"
 
 /* Constructor and construct functions */
 // Constructor
@@ -113,6 +114,70 @@ void APlayableCharacter::BeginPlay()
 	Super::BeginPlay();
 	// Calls the player controller state which is only available after BeginPlay (not in constructor)	
 	APlayableCharacter::GetInputSystem();
+}
+
+// VERSION SIMPLE ET PROPRE
+void APlayableCharacter::InitAbilitySystemComponent()
+{
+	/* Delay initialization to the next tick to ensure PlayerState is valid */
+	/*  Otherwise might not work for standalone games */
+	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+		{
+			if (ACustomPlayerState* CustomPlayerState = GetPlayerState<ACustomPlayerState>())
+			{
+				AbilitySystemComponent = CastChecked<UCustomAbilitySystemComponent>(CustomPlayerState->GetAbilitySystemComponent());
+				AbilitySystemComponent->InitAbilityActorInfo(CustomPlayerState, this);
+				AttributeSet = CustomPlayerState->GetAttributeSet();
+
+				// Maintenant initialiser les attributs par défaut
+				InitDefaultAttributes();
+
+				UE_LOG(LogTemp, Log, TEXT("GAS initialized successfully!"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("PlayerState still null after NextTick - trying with longer delay"));
+				RetryInitAbilitySystem();
+			}
+		});
+}
+
+void APlayableCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	InitAbilitySystemComponent();
+	// NE PAS appeler InitDefaultAttributes() ici - il sera appelé dans le timer
+}
+
+// Fonction de fallback au cas où NextTick ne suffit pas
+void APlayableCharacter::RetryInitAbilitySystem()
+{
+	FTimerHandle RetryTimer;
+	GetWorld()->GetTimerManager().SetTimer(RetryTimer, [this]()
+		{
+			if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			{
+				if (ACustomPlayerState* CustomPlayerState = Cast<ACustomPlayerState>(PC->PlayerState))
+				{
+					AbilitySystemComponent = CastChecked<UCustomAbilitySystemComponent>(CustomPlayerState->GetAbilitySystemComponent());
+					AbilitySystemComponent->InitAbilityActorInfo(CustomPlayerState, this);
+					AttributeSet = CustomPlayerState->GetAttributeSet();
+					InitDefaultAttributes();
+					UE_LOG(LogTemp, Log, TEXT("GAS initialized on retry!"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("PlayerState still null after retry - giving up"));
+				}
+			}
+		}, 0.2f, false);
+}
+
+void APlayableCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	InitAbilitySystemComponent();
+	//InitDefaultAttributes();
 }
 
 void APlayableCharacter::Tick(float DeltaTime)
@@ -348,18 +413,16 @@ void APlayableCharacter::AttachWeaponToSocket(AWeapon* Weapon, FName SocketName)
 			if (Weapon->GetWeaponMesh()->AttachToComponent(this->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName))
 			{
 				UE_LOG(LogTemp, Log, TEXT("Weapon attached to socket %s successfully."), *SocketName.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Weapon attached to socket %s successfully."), *SocketName.ToString()));
 			}
 			else
 			{
 				UE_LOG(LogTemp, Error, TEXT("Failed to attach weapon to socket %s."), *SocketName.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Failed to attach weapon to socket %s."), *SocketName.ToString()));
 			}
 		}
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to attach weapon. Invalid weapon or mesh."));
+		UE_LOG(LogTemp, Error, TEXT("AttachWeaponToSocket: Invalid weapon or weapon mesh."));
 	}
 }
 

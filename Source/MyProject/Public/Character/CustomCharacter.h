@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 
-
 /************************
 *Custom files includes  *
 *************************/
@@ -12,6 +11,8 @@
 #include "Weapon/WeaponObject.h" // Include the header for ItemObject
 #include "Weapon/Weapon.h"
 #include "Weapon/WeaponType.h" // Include the header for WeaponType enum
+// GAS
+#include "AbilitySystemInterface.h"
 
 // Inventory
 #include "Inventory/InventoryComponent.h"
@@ -28,38 +29,47 @@
 #include "NiagaraSystem.h"
 #include "CustomCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFireEvent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerFireEvent);
+
+class UCustomAbilitySystemComponent;
+class UCharacterAttributeSet;
+class UGameplayAbility;
+class UGameplayEffect;
 
 UCLASS(Blueprintable)
-class MYPROJECT_API ACustomCharacter : public ACharacter
+class MYPROJECT_API ACustomCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
-	/* Constructor & Construct helpers functions */
+	/***************************************************
+	* CONSTRUCTOR & CONSTRUCT HELPERS FUNCTIONS        *
+	***************************************************/
 public:
 	// Sets default values for this character's properties
 	ACustomCharacter();
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PopulateWeaponSocketMap(); // Populate the WeaponSocketMap with weapon types and corresponding socket names
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnFireEvent OnFire;
-
+	FOnPlayerFireEvent OnFire;
 
 	/*************************
-	* Unreal Functions       *
+	* UNREAL FUNCTIONS       *
 	**************************/
-protected:
-	// Called when the game starts or when spawned
+public:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+protected:
 	void ConstructDefaultMetahuman();
 
 
 	/*************************
-	* Custom Public Function *
+	* CUSTOM PUBLIC FUNCTION *
 	**************************/
 public:	
-	// Redefine the Tick in children classes of ACustomCharacter
-	virtual void Tick(float DeltaTime) override;
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	virtual bool SwitchToWeapon(int WeaponIndex); // Override the SwitchToWeapon function to use the Inventory component
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -67,11 +77,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	virtual void InstanciateWeaponItem(UWeaponObject* Weapon); // Spawn weapon in the world
 
-	/* Functions to shoot */
+	/**********************
+	* Shoot functions  *
+	***********************/
 	UFUNCTION(BlueprintCallable, Category = "Fire")
 	virtual void Fire(); // Function to fire the weapon
 
-	/* Movement Functions */
+	/**********************
+	* Movement functions  *
+	***********************/
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	virtual void BeginSprint(); // Function to begin sprinting
 	
@@ -84,15 +98,29 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	virtual void EndWalk(); // Function to begin sprinting
 
-	/* Valid checks functions */
+	/*************************
+	* Validations functions  *
+	**************************/
 	UFUNCTION(BlueprintCallable, Category = "Validation")
 	virtual bool IsCurrentWeaponValid() const; // Check if the current weapon is valid
+
+	/**********************
+	* Reload functions    *
+	***********************/
+	UFUNCTION(BlueprintCallable, Category = "Reload")
+	virtual bool CanReload() const; // Check if the character can reload the current weapon
+	UFUNCTION(BlueprintCallable, Category = "Reload")
+	virtual uint8 Reload(); // Reload the current weapon if possible
+
 	/*************************
-	* Public Variables       *
+	* PUBLIC VARIABLES       *
 	**************************/
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	UInventoryComponent* Inventory;
+	/**********************
+	* Movement variables  *
+	***********************/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 200.f; // Walk speed of the character
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -103,24 +131,23 @@ public:
 	float CrouchSpeed = 150.f; // Sprint speed of the character
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsRunning = false; // Boolean to check if the character is aiming
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aiming")
-	bool bIsAiming = false; // Boolean to check if the character is aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	bool bIsCrouching = false; // Boolean to check if the character is crouching
+
+	/**********************
+	* Actions variables    *
+	***********************/
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aiming")
+	bool bIsAiming = false; // Boolean to check if the character is aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Action")
 	bool bIsReloading = false; // Boolean to check if the character is reloading
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Trajectory")
 	UCharacterTrajectoryComponent* TrajectoryComponent;
 
-	/**********************
-	* Reload functions    *
-	***********************/
-	UFUNCTION(BlueprintCallable, Category = "Reload")
-	virtual bool CanReload() const; // Check if the character can reload the current weapon
-	UFUNCTION(BlueprintCallable, Category = "Reload")
-	virtual uint8 Reload(); // Reload the current weapon if possible
+
 	/*************************
-	* Protected Variables    *
+	* PROTECTED VARIABLES    *
 	**************************/
 protected:
 	/* Metahuman meshes*/
@@ -138,7 +165,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman")
 	UGroomComponent* HairMesh;
 
-	/* Sockets Map */
+	/******************
+	* GAS Variables    *
+	*******************/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCustomAbilitySystemComponent> AbilitySystemComponent;	
+	UPROPERTY()
+	TObjectPtr< UCharacterAttributeSet> AttributeSet;
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+
+
 	TMap<EWeaponType, FName> WeaponSocketMap; // Map to store weapon type and socket name
 
 	/* Rotation variables */
@@ -147,10 +186,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BlueprintProtected), Category = "Rotation")
 	FRotator CurrentRotation = FRotator::ZeroRotator;
 
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BlueprintProtected), Category = "Niagara")
 	UNiagaraSystem* ConcreteImpactEffect; // Niagara effect for concrete impact
-	/* Protected functions*/
+
+
+	/*************************
+	* PROTECTED FUNCTIONS    *
+	**************************/
 protected:
+
 	/**********************
 	* Socket functions    *
 	***********************/
@@ -171,4 +217,10 @@ protected:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintProtected), Category = "Movement")
 	virtual FRotator GetRotationSpeed();
 
+	/**********************
+	* GAS Functions       *
+	**********************/
+	void GiveDefaultAbilities();
+
+	void InitDefaultAttributes();
 };

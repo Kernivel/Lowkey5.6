@@ -18,6 +18,10 @@
 /* Recoil shakes */
 #include "Utils/LightWeaponFireCameraShake.h"
 
+/*Debug net*/
+#include "Engine/Engine.h"
+#include "Engine/NetDriver.h"
+
 /* Saves */
 #include "Utils/PlayerSave.h"
 
@@ -38,6 +42,11 @@ private:
 	
 public:
 	APlayableCharacter();
+
+	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void RetryInitAbilitySystem();
+	virtual void OnRep_PlayerState() override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -94,7 +103,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman")
 	USkeletalMeshComponent* FirstPersonGlovesMesh;
 
-	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -118,4 +126,6 @@ protected:
 
 	virtual void AttachWeaponsToSockets() override;
 
+private:
+	void InitAbilitySystemComponent();
 };

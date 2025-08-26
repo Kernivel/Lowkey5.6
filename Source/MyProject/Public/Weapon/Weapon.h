@@ -15,6 +15,8 @@
 
 #include "Weapon.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponFireEvent);
+
 /**
  * 
  */
@@ -39,6 +41,8 @@ public:
 	bool Fire();
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	UWeaponObject* GetWeaponObject();
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnWeaponFireEvent OnFire;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* WeaponMesh;

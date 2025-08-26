@@ -2,6 +2,7 @@
 
 
 #include "Character/CustomCharacter.h"
+#include "AbilitySystem/CustomAbilitySystemComponent.h"
 
 /*******************************************
 *Constructor & Construct helpers functions * 
@@ -21,7 +22,7 @@ ACustomCharacter::ACustomCharacter()
 
 	TrajectoryComponent = CreateDefaultSubobject<UCharacterTrajectoryComponent>(TEXT("TrajectoryComponent"));
 	
-	GetCharacterMovement()->MaxWalkSpeedCrouched = this->CrouchSpeed; // Enable crouching for the character
+	GetCharacterMovement()->MaxWalkSpeedCrouched = this->CrouchSpeed; 
 	
 	this->ConcreteImpactEffect = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Niagara/Blueprints/NS_ConcreteImapact"));
 
@@ -59,7 +60,7 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BodyMeshAsset not found!"));
+		UE_LOG(LogTemp, Warning, TEXT("ConstructDefaultMetahuman: BodyMeshAsset not found!"));
 	}
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FaceMeshAsset(TEXT("/Game/MetaHumans/Daniel/Face/Daniel_FaceMesh"));
 	if ( FaceMeshAsset.Succeeded())
@@ -69,7 +70,7 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FaceMeshAsset not found!"));
+		UE_LOG(LogTemp, Warning, TEXT("ConstructDefaultMetahuman: FaceMeshAsset not found!"));
 	}
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> TorsoMeshAsset(TEXT("/Game/MetaHumans/Common/Male/Medium/NormalWeight/Tops/Crewneckt/m_med_nrw_top_crewneckt_nrm_Medium"));
 	if (TorsoMeshAsset.Succeeded())
@@ -79,7 +80,7 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TorsoMeshAsset not found!"));
+		UE_LOG(LogTemp, Warning, TEXT("ConstructDefaultMetahuman: TorsoMeshAsset not found!"));
 	}
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PantsMeshAsset(TEXT("/Game/MetaHumans/Common/Male/Medium/NormalWeight/Bottoms/Jeans/m_med_nrw_btm_jeans_nrm_Medium"));
 	if(PantsMeshAsset.Succeeded())
@@ -89,7 +90,7 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PantsMeshAsset not found!"));
+		UE_LOG(LogTemp, Warning, TEXT("ConstructDefaultMetahuman: PantsMeshAsset not found!"));
 	}
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ShoesMeshAsset(TEXT("/Game/MetaHumans/Common/Male/Medium/NormalWeight/Shoes/Boots/m_med_nrw_shs_boots_Medium"));
 	if(ShoesMeshAsset.Succeeded())
@@ -99,7 +100,7 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	}
 	else
 		{
-		UE_LOG(LogTemp, Warning, TEXT("FeetMeshAsset not found!"));
+		UE_LOG(LogTemp, Warning, TEXT("ConstructDefaultMetahuman: FeetMeshAsset not found!"));
 	}
 
 
@@ -126,7 +127,6 @@ void ACustomCharacter::PopulateWeaponSocketMap()
 void ACustomCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Custom Character was created"));
 }
 
 // Called every frame
@@ -134,6 +134,16 @@ void ACustomCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ACustomCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+}
+
+UAbilitySystemComponent* ACustomCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 // Called to bind functionality to input
@@ -156,9 +166,8 @@ bool ACustomCharacter::SwitchToWeapon(int WeaponIndex)
 {	
 	UWeaponObject* WeaponObject = Inventory->SwitchWeaponIndex(WeaponIndex);
 	if (WeaponObject != nullptr) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Switched to weapon index: ") + FString::FromInt(WeaponIndex));
 		FString WeaponNameMessage = Inventory->SwitchWeaponIndex(WeaponIndex)->GetName() + TEXT( ":equiped!");
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, WeaponNameMessage);
+		UE_LOG(LogTemp, Log, TEXT("SwitchToWeapon ACu: %s"), *WeaponNameMessage);
 		return true;
 	}
 	// If the weapon index is invalid or the weapon is not found, log an error message
@@ -351,7 +360,7 @@ FRotator ACustomCharacter::GetRotationSpeedFromRotationDelta(FRotator RotationDe
 {
 	if (FMath::IsNearlyZero(DeltaTime))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("DeltaTime is nearly zero, returning zero rotation speed."));
+		UE_LOG(LogTemp, Warning, TEXT("GetRotationSpeedFromRotationDelta: DeltaTime is nearly zero, returning zero rotation speed."));
 		return FRotator::ZeroRotator;
 	}
 	return FRotator(
@@ -365,6 +374,19 @@ FRotator ACustomCharacter::GetRotationSpeed()
 {
 	FRotator RotationDelta = ACustomCharacter::GetRotationDelta(this->PreviousRotation, this->CurrentRotation);
 	return GetRotationSpeedFromRotationDelta(RotationDelta, GetWorld()->GetDeltaSeconds());
+}
+
+void ACustomCharacter::GiveDefaultAbilities()
+{
+	check(AbilitySystemComponent);
+	if (!HasAuthority()) return;
+
+	for(TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilities)
+	{
+		const FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
+		AbilitySystemComponent->GiveAbility(AbilitySpec);
+	}
+
 }
 
 bool ACustomCharacter::IsCurrentWeaponValid() const
@@ -396,4 +418,16 @@ bool ACustomCharacter::IsCurrentWeaponValid() const
 		}
 	}
 	return false; // The current weapon is not valid or the index is out of bounds
+}
+
+void ACustomCharacter::InitDefaultAttributes()
+{
+	if (!AbilitySystemComponent || !DefaultAttributeEffect) return;
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+	const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContext);
+	if(SpecHandle.IsValid())
+	{
+		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
 }

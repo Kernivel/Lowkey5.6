@@ -193,6 +193,7 @@ bool AWeapon::Fire()
 			true // Auto destroy the system after completion
 		);
 	}
+	OnFire.Broadcast(); // Broadcast the OnFire event
 	return true;
 }
 
