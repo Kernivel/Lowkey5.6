@@ -343,7 +343,7 @@ void APlayableCharacter::Fire()
 			}
 			//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 1.f);
 			// Play the camera shake
-			OnFire.Broadcast(); // Broadcast the OnFire event
+			ACustomCharacter::OnFire.Broadcast(); // Broadcast the OnFire 
 			this->StartNewCurvePlayback(); // Start a new curve playback for recoil
 
 		}

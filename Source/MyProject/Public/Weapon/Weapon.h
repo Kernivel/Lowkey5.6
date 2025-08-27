@@ -28,9 +28,9 @@ public:
 	AWeapon(const FObjectInitializer& ObjectInitializer);
 	void PostInitializeComponents() override; // Override to initialize components after construction
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
-	bool Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView);
-	UFUNCTION(BlueprintCallable, Category = "Initialization")
-	void InitializeWeaponObject();
+	void Initialize();
+	UFUNCTION(BlueprintCallable, Category = "Creation")
+	void CreateWeaponSubobject();
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
 	bool InitializeAnimationData();
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
@@ -41,8 +41,10 @@ public:
 	bool Fire();
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	UWeaponObject* GetWeaponObject();
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnWeaponFireEvent OnFire;
+	void BeginPlay() override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events Weapon")
+	FOnWeaponFireEvent OnWeaponFire;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* WeaponMesh;
@@ -54,7 +56,9 @@ public:
 	FVector MuzzleLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Muzzle")
 	FRotator MuzzleRotation;
-	void BeginPlay() override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "View")
+	bool bIsFirstPersonView = true;
+
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data table")

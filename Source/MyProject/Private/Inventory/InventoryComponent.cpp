@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Inventory/InventoryComponent.h"
@@ -97,28 +98,33 @@ uint8 UInventoryComponent::SpawnWeaponsFromInventory(AActor* Outer, bool FirstPe
 /* Spawn a Weapon Actor in the world and attach it to the OuterActor */
 AWeapon* UInventoryComponent::SpawnWeaponItem(AActor* Outer, UWeaponObject* WeaponData, bool FirstPersonView)
 {
+	/* Force the Bluprint to be spawned */
+	UClass* WeaponBPClass = LoadClass<AWeapon>(nullptr, TEXT("/Game/Weapon/BP_Weapon.BP_Weapon_C"));
+	if(!WeaponBPClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("SpawnWeaponItem: Failed to load Weapon Blueprint class."));
+		return nullptr;
+	}
+
 	if (Outer == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("No Outer provided!"));
+		UE_LOG(LogTemp, Error, TEXT("SpawnWeaponItem: No Outer provided!"));
 		return 0;
 	}
 	if (WeaponData == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponToSpawn is null! Cannot spawn weapon."));
+		UE_LOG(LogTemp, Error, TEXT("SpawnWeaponItem: WeaponToSpawn is null! Cannot spawn weapon."));
 		return nullptr;
 	}
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Outer;
 	SpawnParams.Instigator = Outer->GetInstigator();
-	AWeapon* WeaponItem = Outer->GetWorld()->SpawnActor<AWeapon>(AWeapon::StaticClass(), Outer->GetActorLocation(), Outer->GetActorRotation(), SpawnParams);
+	AWeapon* WeaponItem = Outer->GetWorld()->SpawnActor<AWeapon>(WeaponBPClass, Outer->GetActorLocation(), Outer->GetActorRotation(), SpawnParams);
+	/* This Initialize covers mesh spawn an animations attach */
 	if (WeaponItem)
 	{
-		/* This Initialize covers mesh spawn an animations attach */
-		WeaponItem->Initialize(WeaponData, FirstPersonView);
-		WeaponItem->AttachToActor(Outer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		WeaponItem->bCanBePickedUp = false;
-		WeaponItem->bIsPickedUp = true; // Mark the weapon as picked up
-		WeaponItem->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Disable collision for the weapon item
+	WeaponItem->AttachToActor(Outer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
 	}
 	else
 	{
@@ -262,12 +268,12 @@ bool UInventoryComponent::AddItemToInventory(AItem* Item)
 
 	if(Cast<AWeapon>(Item))
 	{
-		AWeapon* Weapon = Cast<AWeapon>(Item);
-		return this->AddWeaponToInventoryWeapon(Weapon);
+		AWeapon* WeaponItem = Cast<AWeapon>(Item);
+		return this->AddWeaponToInventoryWeapon(WeaponItem);
 	} else if (Cast<AAmmo>(Item))
 	{
-		UAmmoObject* AmmoObject = Cast<UAmmoObject>(Item);
-		
+		AAmmo* AmmoItem = Cast<AAmmo>(Item);
+		// Add the ammo to the inventory
 	}
 	UItemObject* ItemObject = Item->ItemObject;
 	if(ItemObject == nullptr)

@@ -14,13 +14,14 @@ AWeapon::AWeapon(const FObjectInitializer& ObjectInitializer):
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	AWeapon::Initialize();
 }
 
 void AWeapon::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	// Initialize the weapon object after components are initialized
-	AWeapon::InitializeWeaponObject();
+	AWeapon::CreateWeaponSubobject();
 }
 
 UWeaponObject* AWeapon::GetWeaponObject()
@@ -33,19 +34,23 @@ UWeaponObject* AWeapon::GetWeaponObject()
 	return nullptr; // Return nullptr if the item object is not valid
 }
 
-bool AWeapon::Initialize(UWeaponObject* InWeaponObject, bool FirstPersonView)
+void AWeapon::Initialize()
 {
-	if (!InWeaponObject)
-	{
-		return false; // Invalid weapon object
+	if (this->bIsFirstPersonView) {
+		/* If the bIsFirstPersonView is set, then the weapon is the hand of a player, and should not have collisions */
+		this->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Disable collision for the weapon item
 	}
-	this->ItemObject = InWeaponObject;
-	AWeapon::InitMesh(FirstPersonView);
+	else 
+	{
+		this->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	this->bCanBePickedUp = !this->bIsFirstPersonView;
+	this->bIsPickedUp = this->bIsFirstPersonView;
+	AWeapon::InitMesh(this->bIsFirstPersonView);
 	AWeapon::InitializeAnimationData();
-	return true;
 }
 
-void AWeapon::InitializeWeaponObject()
+void AWeapon::CreateWeaponSubobject()
 {
 	this->ItemObject = NewObject<UWeaponObject>(this, UWeaponObject::StaticClass());
 }
@@ -55,7 +60,7 @@ bool AWeapon::InitMesh(bool FirstPersonView)
 	UWeaponObject* WeaponObject = this->GetWeaponObject();
 	if(!WeaponObject)
 	{
-		UE_LOG(LogTemp, Error, TEXT("InitMesh: Invalid WeaponObject."));
+		UE_LOG(LogTemp, Error, TEXT("InitMesh: Invalid WeaponObject, cannot retreive the corresponding Weapon Mesh to initialize"));
 		return false; // Invalid weapon object
 	}
 	TSoftObjectPtr<USkeletalMesh> SoftSkelMeshReference = WeaponObject->SoftSkelMeshReference;
@@ -193,7 +198,7 @@ bool AWeapon::Fire()
 			true // Auto destroy the system after completion
 		);
 	}
-	OnFire.Broadcast(); // Broadcast the OnFire event
+	OnWeaponFire.Broadcast(); // Broadcast the OnFire event
 	return true;
 }
 
