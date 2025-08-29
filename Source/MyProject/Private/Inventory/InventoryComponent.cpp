@@ -123,8 +123,7 @@ AWeapon* UInventoryComponent::SpawnWeaponItem(AActor* Outer, UWeaponObject* Weap
 	/* This Initialize covers mesh spawn an animations attach */
 	if (WeaponItem)
 	{
-	WeaponItem->AttachToActor(Outer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-
+		WeaponItem->AttachToActor(Outer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	}
 	else
 	{
