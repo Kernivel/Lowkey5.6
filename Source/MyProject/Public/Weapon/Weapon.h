@@ -48,6 +48,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* WeaponMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Build")
+	FString RowName = "0";
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	bool bIsFiring = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Muzzle")
@@ -57,7 +59,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Muzzle")
 	FRotator MuzzleRotation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "View")
-	bool bIsFirstPersonView = true;
+	bool bIsFirstPersonView = false;
 
 
 protected:

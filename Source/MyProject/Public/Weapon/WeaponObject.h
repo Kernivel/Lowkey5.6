@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
 	TSoftObjectPtr<USkeletalMesh> SoftSkelMeshReference;
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool InitializeData(const FWeaponData& WeaponData);
+	bool InitializeData(const FWeaponData& WeaponData, FString RowId);
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool InitializeAnimationData(const FWeaponAnimation& AnimationData);
 	UFUNCTION(BlueprintCallable, Category = "Weapon")

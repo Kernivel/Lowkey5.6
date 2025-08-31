@@ -47,8 +47,8 @@ UWeaponObject* UInventoryComponent::CreateWeaponObject(UObject* outer, uint8 Row
 		{
 			UWeaponObject* NewWeapon = NewObject<UWeaponObject>(outer);
 			if (NewWeapon)
-			{
-				NewWeapon->InitializeData(*WeaponData);
+			{	
+				NewWeapon->InitializeData(*WeaponData,FString::FromInt(RowId));
 				FWeaponAnimation* WeaponAnimation = WeaponAnimationTable->FindRow<FWeaponAnimation>(FName(*FString::FromInt(RowId)), TEXT("Lookup Weapon Animation"));
 				if (WeaponAnimation != nullptr)
 				{
@@ -87,7 +87,7 @@ uint8 UInventoryComponent::SpawnWeaponsFromInventory(AActor* Outer, bool FirstPe
 	// Foreach loop
 	for(UWeaponObject* Weapon : this->InventoryWeapons)
 	{
-		AWeapon* SpawnedWeapon = this->SpawnWeaponItem(Outer, Weapon, FirstPersonView);
+		AWeapon* SpawnedWeapon = this->SpawnWeaponItemAttachedToOwner(Outer, Weapon, FirstPersonView);
 		this->SpawnedWeapons.Add(SpawnedWeapon); // Add the spawned weapon to the array
 		SpawnedWeaponsCount++;
 	}
@@ -96,7 +96,7 @@ uint8 UInventoryComponent::SpawnWeaponsFromInventory(AActor* Outer, bool FirstPe
 }
 
 /* Spawn a Weapon Actor in the world and attach it to the OuterActor */
-AWeapon* UInventoryComponent::SpawnWeaponItem(AActor* Outer, UWeaponObject* WeaponData, bool FirstPersonView)
+AWeapon* UInventoryComponent::SpawnWeaponItemAttachedToOwner(AActor* Outer, UWeaponObject* WeaponData, bool FirstPersonView)
 {
 	/* Force the Bluprint to be spawned */
 	UClass* WeaponBPClass = LoadClass<AWeapon>(nullptr, TEXT("/Game/Weapon/BP_Weapon.BP_Weapon_C"));
@@ -109,21 +109,33 @@ AWeapon* UInventoryComponent::SpawnWeaponItem(AActor* Outer, UWeaponObject* Weap
 	if (Outer == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("SpawnWeaponItem: No Outer provided!"));
-		return 0;
+		return nullptr;
 	}
 	if (WeaponData == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("SpawnWeaponItem: WeaponToSpawn is null! Cannot spawn weapon."));
 		return nullptr;
 	}
+	/*
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Outer;
 	SpawnParams.Instigator = Outer->GetInstigator();
-	AWeapon* WeaponItem = Outer->GetWorld()->SpawnActor<AWeapon>(WeaponBPClass, Outer->GetActorLocation(), Outer->GetActorRotation(), SpawnParams);
-	/* This Initialize covers mesh spawn an animations attach */
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	*/
+	AWeapon* WeaponItem = Outer->GetWorld()->SpawnActorDeferred<AWeapon>(
+		WeaponBPClass,
+		Outer->GetTransform(),
+		Outer,
+		Outer->GetInstigator(),
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+	);
+
 	if (WeaponItem)
 	{
-		WeaponItem->AttachToActor(Outer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		WeaponItem->ItemObject = WeaponData; // Assign the weapon data to the spawned weapon
+		WeaponItem->RowName = FString(*WeaponData->WeaponId);
+		WeaponItem->bIsFirstPersonView = FirstPersonView;
+		WeaponItem->FinishSpawning(Outer->GetTransform());
 	}
 	else
 	{
@@ -217,13 +229,12 @@ bool UInventoryComponent::AddWeaponToInventoryWeapon(AWeapon* Weapon)
 		UE_LOG(LogTemp, Warning, TEXT("AddWeaponToInventoryWeapon: Cannot add weapon: %s to inventory. Maximum weapons count reached."), *WeaponObject->GetName());
 		return false;
 	}
-	Weapon->AttachToActor(this->GetOwner(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	this->InventoryWeapons.Add(WeaponObject);
 	UE_LOG(LogTemp, Log, TEXT("AddWeaponToInventoryWeapon: Added weapon: %s to inventory."), *WeaponObject->GetName());
 	/* Destroy weapon item and reinstanciate it as a First Person Mesh */
 	Weapon->Destroy();
-	AWeapon* NewWeapon = this->SpawnWeaponItem(this->GetOwner(), WeaponObject, true); // Spawn the weapon as a first person mesh
+	AWeapon* NewWeapon = this->SpawnWeaponItemAttachedToOwner(this->GetOwner(), WeaponObject, true); // Spawn the weapon as a first person mesh
 	this->SpawnedWeapons.Add(NewWeapon); // Add the spawned weapon to the array
+	this->InventoryWeapons.Add(NewWeapon->GetWeaponObject()); // Add the weapon object to the inventory
 	return true;
 }
 

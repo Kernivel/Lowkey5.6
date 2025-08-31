@@ -9,12 +9,12 @@ AWeapon::AWeapon(const FObjectInitializer& ObjectInitializer):
 	ItemObject = CreateDefaultSubobject<UWeaponObject>(TEXT("WeaponObject")); // Initialize ItemObject
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	RootComponent = WeaponMesh; // Set the root component to the weapon mesh
+	CollisionSphere->SetupAttachment(RootComponent); // Attach the collision sphere to the root component
 }
 
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	AWeapon::Initialize();
 }
 
 void AWeapon::PostInitializeComponents()
@@ -39,11 +39,14 @@ void AWeapon::Initialize()
 	if (this->bIsFirstPersonView) {
 		/* If the bIsFirstPersonView is set, then the weapon is the hand of a player, and should not have collisions */
 		this->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Disable collision for the weapon item
+		this->WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Disable collision for the weapon mesh
 	}
 	else 
 	{
 		this->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		this->WeaponMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	}
+	//this->CollisionSphere->AttachToComponent(this->WeaponMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	this->bCanBePickedUp = !this->bIsFirstPersonView;
 	this->bIsPickedUp = this->bIsFirstPersonView;
 	AWeapon::InitMesh(this->bIsFirstPersonView);

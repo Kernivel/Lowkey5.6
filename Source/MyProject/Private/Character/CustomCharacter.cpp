@@ -182,7 +182,7 @@ void ACustomCharacter::InstanciateAllWeaponItems()
 
 
 void ACustomCharacter::InstanciateWeaponItem(UWeaponObject* Weapon){
-	this->Inventory->SpawnWeaponItem(this, Weapon, false);
+	this->Inventory->SpawnWeaponItemAttachedToOwner(this, Weapon, false);
 }
 
 

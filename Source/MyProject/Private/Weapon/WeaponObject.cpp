@@ -3,13 +3,13 @@
 
 #include "Weapon/WeaponObject.h"
 
-bool UWeaponObject::InitializeData(const FWeaponData& WeaponData)
+bool UWeaponObject::InitializeData(const FWeaponData& WeaponData, FString RowId)
 {
 	/* Set the values for ItemObject first */
 	this->SetItemObjectName(WeaponData.Name);
 	this->SetItemObjectDescription(WeaponData.Description);
 	this->SetItemObjectImage(WeaponData.Image);
-
+	this->WeaponId = RowId;
 	/* Set the Weapon specific values */
 	this->SoftSkelMeshReference = WeaponData.SkeletalMesh;
 	this->Type = WeaponData.Type;

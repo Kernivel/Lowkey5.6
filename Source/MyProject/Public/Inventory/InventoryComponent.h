@@ -71,7 +71,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Creation")
 	uint8 SpawnWeaponsFromInventory(AActor* Outer, bool FirstPersonView); // Spawn all weapons from the inventory
 	UFUNCTION(BlueprintCallable, Category = "Creation")
-	AWeapon* SpawnWeaponItem(AActor* Outer, UWeaponObject* WeaponData, bool FirstPersonView);
+	AWeapon* SpawnWeaponItemAttachedToOwner(AActor* Outer, UWeaponObject* WeaponData, bool FirstPersonView);
 	UFUNCTION(BlueprintCallable, Category = "Selection")
 	UWeaponObject* SwitchWeaponIndex(int32 Index); // Switch weapon by index in the inventory
 	UFUNCTION(BlueprintCallable, Category = "Getter")

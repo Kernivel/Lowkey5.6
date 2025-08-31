@@ -226,7 +226,7 @@ void APlayableCharacter::InstanciateAllWeaponItems()
 
 
 void APlayableCharacter::InstanciateWeaponItem(UWeaponObject* Weapon) {
-	this->Inventory->SpawnWeaponItem(this, Weapon, true);
+	this->Inventory->SpawnWeaponItemAttachedToOwner(this, Weapon, true);
 }
 
 AItem* APlayableCharacter::ScanForPickableItems()
