@@ -47,6 +47,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void RetryInitAbilitySystem();
 	virtual void OnRep_PlayerState() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 

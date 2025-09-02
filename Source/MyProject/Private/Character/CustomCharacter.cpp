@@ -43,8 +43,8 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	PantsMesh->SetupAttachment(GetMesh());
 	FaceMesh->SetupAttachment(GetMesh());
 	ShoesMesh->SetupAttachment(GetMesh());
-
 	GlovesMesh->SetupAttachment(GetMesh());
+
 	// Set the master poses for the meshes
 	TorsoMesh->SetLeaderPoseComponent(GetMesh());
 	PantsMesh->SetLeaderPoseComponent(GetMesh());
@@ -139,6 +139,11 @@ void ACustomCharacter::Tick(float DeltaTime)
 void ACustomCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+}
+
+void ACustomCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
 }
 
 UAbilitySystemComponent* ACustomCharacter::GetAbilitySystemComponent() const

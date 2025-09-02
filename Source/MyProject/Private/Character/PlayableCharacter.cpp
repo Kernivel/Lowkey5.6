@@ -180,6 +180,11 @@ void APlayableCharacter::OnRep_PlayerState()
 	//InitDefaultAttributes();
 }
 
+void APlayableCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+}
+
 void APlayableCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

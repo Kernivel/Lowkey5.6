@@ -60,6 +60,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnConstruction(const FTransform& Transform) override;	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:

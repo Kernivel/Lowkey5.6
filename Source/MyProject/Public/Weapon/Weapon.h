@@ -28,7 +28,7 @@ public:
 	AWeapon(const FObjectInitializer& ObjectInitializer);
 	void PostInitializeComponents() override; // Override to initialize components after construction
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
-	void Initialize();
+	void Initialize(UWeaponObject *InWeaponObject);
 	UFUNCTION(BlueprintCallable, Category = "Creation")
 	void CreateWeaponSubobject();
 	UFUNCTION(BlueprintCallable, Category = "Initialization")

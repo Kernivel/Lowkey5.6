@@ -34,8 +34,9 @@ UWeaponObject* AWeapon::GetWeaponObject()
 	return nullptr; // Return nullptr if the item object is not valid
 }
 
-void AWeapon::Initialize()
+void AWeapon::Initialize(UWeaponObject *InWeaponObject)
 {
+	this->ItemObject = InWeaponObject;
 	if (this->bIsFirstPersonView) {
 		/* If the bIsFirstPersonView is set, then the weapon is the hand of a player, and should not have collisions */
 		this->CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Disable collision for the weapon item
