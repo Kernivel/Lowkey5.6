@@ -107,7 +107,7 @@ bool AWeapon::InitMesh(bool FirstPersonView)
 
 bool AWeapon::InitializeAnimationData()
 {
-	UE_LOG(LogTemp, Log, TEXT("Starting loading weapon animations"));
+	UE_LOG(LogTemp, Log, TEXT("InitializeAnimationData: Starting loading weapon animations"));
 	UWeaponObject* WeaponObject = this->GetWeaponObject();
 	if(!WeaponObject)
 	{
@@ -116,7 +116,7 @@ bool AWeapon::InitializeAnimationData()
 	}
 	if(WeaponObject->AnimBPClass.IsValid() || WeaponObject->AnimBPClass.ToSoftObjectPath().IsValid())
 	{
-		UE_LOG(LogTemp, Log, TEXT("Animation asset is valid loading weapon animations"));
+		UE_LOG(LogTemp, Log, TEXT("InitializeAnimationData: Animation asset is valid loading weapon animations"));
 		FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 		TSharedPtr<FStreamableHandle> Handle = Streamable.RequestAsyncLoad(
 			WeaponObject->AnimBPClass.ToSoftObjectPath(),
@@ -124,13 +124,13 @@ bool AWeapon::InitializeAnimationData()
 				{
 					if(!IsValid(this) || !IsValid(WeaponObject))
 					{
-						UE_LOG(LogTemp, Error, TEXT("Weapon or WeaponObject is null during async load."));
+						UE_LOG(LogTemp, Error, TEXT("InitializeAnimationData: Weapon or WeaponObject is null during async load."));
 						return; // Early exit if the weapon or object is invalid
 					}
 					UClass* LoadedAnimBPClass = WeaponObject->AnimBPClass.Get();
 					if(!LoadedAnimBPClass)
 					{
-						UE_LOG(LogTemp, Error, TEXT("Failed to load the Animation Blueprint Class from the provided reference."));
+						UE_LOG(LogTemp, Error, TEXT("InitializeAnimationData: Failed to load the Animation Blueprint Class from the provided reference."));
 						return; // Early exit if the animation blueprint class is invalid
 					}
 					if (LoadedAnimBPClass && this->WeaponMesh)
@@ -141,15 +141,15 @@ bool AWeapon::InitializeAnimationData()
 		);
 		if (!Handle.IsValid())
 		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to request async load for the skeletal mesh."));
+			UE_LOG(LogTemp, Error, TEXT("InitializeAnimationData: Failed to request async load for the skeletal mesh."));
 			return false; // Failed to request async load
 		}
-		UE_LOG(LogTemp, Log, TEXT("Async loaded this Weapon animation"));
+		UE_LOG(LogTemp, Log, TEXT("InitializeAnimationData: Async loaded this Weapon animation"));
 		return true;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Animation Blueprint Class for WeaponObject."));
+		UE_LOG(LogTemp, Error, TEXT("InitializeAnimationData: Invalid Animation Blueprint Class for WeaponObject."));
 		return false;
 	}
 }
@@ -160,7 +160,7 @@ FTransform AWeapon::GetMuzzleWorldTransform() const
 	{
 		return this->WeaponMesh->GetSocketTransform("MuzzleSocket", ERelativeTransformSpace::RTS_World);
 	}
-	UE_LOG(LogTemp, Error, TEXT("Weapon mesh is not valid. Cannot get muzzle transform."));
+	UE_LOG(LogTemp, Error, TEXT("GetMuzzleWorldTransform: Weapon mesh is not valid. Cannot get muzzle transform."));
 	return FTransform::Identity; // Return an identity transform if the mesh is not valid
 }
 
