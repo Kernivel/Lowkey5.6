@@ -24,6 +24,16 @@ void UInventoryComponent::BeginPlay()
 	
 }
 
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	DOREPLIFETIME(UInventoryComponent, InventoryAmmo);
+}
+
+void UInventoryComponent::OnRep_InventoryAmmo()
+{
+	UE_LOG(LogTemp, Log, TEXT("InventoryAmmo replicated."));
+}
+
 
 // Called every frame
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -264,6 +274,30 @@ bool UInventoryComponent::AddAmmoToInventory(AAmmo* Ammo)
 	this->InventoryAmmo.Add(AmmoObject);
 	UE_LOG(LogTemp, Log, TEXT("AddAmmoToInventory: Added ammo: %s to inventory."), *AmmoObject->GetName());
 	Ammo->Destroy(); // Destroy the ammo actor after adding to inventory
+	return true;
+}
+
+bool UInventoryComponent::AddAmmoObjectToInventory(UAmmoObject* AmmoObject)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+        return false;
+	if (AmmoObject == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddAmmoObjectToInventory: Cannot add null ammo to inventory."));
+		return false;
+	}
+	if(AmmoObject->GetOuter() != this)
+	{
+		UAmmoObject* ReplicatedAmmo = DuplicateObject<UAmmoObject>(AmmoObject, this);
+		InventoryAmmo.Add(ReplicatedAmmo);
+		AmmoObject->MarkAsGarbage();
+	}
+	else
+	{
+		this->InventoryAmmo.Add(AmmoObject);
+	}
+	// La réplication se fera automatiquement
+	UE_LOG(LogTemp, Warning, TEXT("Added ammo to inventory. Total count: %d"), InventoryAmmo.Num());
 	return true;
 }
 

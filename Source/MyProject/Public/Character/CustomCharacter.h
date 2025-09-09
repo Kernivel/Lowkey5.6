@@ -160,8 +160,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman")
 	USkeletalMeshComponent* ShoesMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman")
-	USkeletalMeshComponent* GlovesMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman")
 	USkeletalMeshComponent* FaceMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman")
 	UGroomComponent* HairMesh;

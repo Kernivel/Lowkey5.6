@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 //#include "Kismet/KismetMathLibrary.h"
 
+#include "Net/UnrealNetwork.h"
 /* Custom includes */
 #include "Weapon/WeaponObject.h"
 #include "ItemObject.h"
@@ -38,7 +39,8 @@ public:
 	TArray<UItemObject*> InventoryItems; // Array to hold items in the inventory
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta = (UWeaponObject))
 	TArray<UWeaponObject*> InventoryWeapons; // Array to hold weapons in the inventory
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta = (UAmmoObject))
+
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta = (UAmmoObject))
 	TArray<UAmmoObject*> InventoryAmmo; // Array to hold ammo in the inventory
 
 	/* Spawned Reference Arrays */
@@ -84,6 +86,8 @@ public:
 	bool AddWeaponToInventoryWeapon(AWeapon* Weapon); // Add an item to the inventory
 	UFUNCTION(BlueprintCallable, Category = "Add")
 	bool AddAmmoToInventory(AAmmo* Ammo); // Add an item to the inventory
+	UFUNCTION(BlueprintCallable, Category = "Ammo")
+	bool AddAmmoObjectToInventory(UAmmoObject* Ammo); // Add an ammo object directly to the inventory
 	/****************** Management end *************/
 	/*************************
 	* Protected Functions    *
@@ -91,6 +95,11 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_InventoryAmmo();
 
 	void CleanSpawnedWeapons(); // Clear the array of spawned weapons
 public:	

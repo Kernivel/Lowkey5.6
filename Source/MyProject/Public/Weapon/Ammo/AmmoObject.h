@@ -6,6 +6,7 @@
 #include "ItemObject.h"
 #include "Weapon/WeaponType.h"
 #include "Weapon/Ammo/AmmoStruct.h"
+#include "Net/UnrealNetwork.h"
 #include "AmmoObject.generated.h"
 
 /**
@@ -18,14 +19,24 @@ class MYPROJECT_API UAmmoObject : public UItemObject
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo|Mesh")
 	TSoftObjectPtr<UStaticMesh> SoftStaticMeshReference;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo|Stats")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Ammo|Stats")
 	uint8 AmmoCount = 30; // The amount of ammo in this object
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo|Stats")
 	uint8 MaxAmmoCount = 180; // The maximum amount of ammo this object can hold
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo|Stats")
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite, Category = "Ammo|Stats")
 	EWeaponType WeaponType = EWeaponType::None; // The type of weapon this ammo is for
 
 	UFUNCTION(BlueprintCallable, Category = "Ammo|Initialization")
 	bool InitializeData(const FAmmoData& AmmoData);
 
+protected:
+	/* Override to enable replication on specified props */
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/* Called when ammo is replicated on a client/server ? */
+	UFUNCTION()
+	void OnRep_AmmoCount();
+
+	UFUNCTION()
+	void OnRep_WeaponType();
 };

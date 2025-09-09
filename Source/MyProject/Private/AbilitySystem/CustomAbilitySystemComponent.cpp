@@ -6,6 +6,7 @@
 
 UCustomAbilitySystemComponent::UCustomAbilitySystemComponent()
 {
+	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicated(true);
 }
 

@@ -34,7 +34,6 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	TorsoMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TorsoMesh"));
 	PantsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PantsMesh"));
 	ShoesMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShoesMesh"));
-	GlovesMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GlovesMesh"));
 	FaceMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HeadMesh"));
 	HairMesh = CreateDefaultSubobject<UGroomComponent>(TEXT("HairMesh"));
 
@@ -43,13 +42,11 @@ void ACustomCharacter::ConstructDefaultMetahuman()
 	PantsMesh->SetupAttachment(GetMesh());
 	FaceMesh->SetupAttachment(GetMesh());
 	ShoesMesh->SetupAttachment(GetMesh());
-	GlovesMesh->SetupAttachment(GetMesh());
 
 	// Set the master poses for the meshes
 	TorsoMesh->SetLeaderPoseComponent(GetMesh());
 	PantsMesh->SetLeaderPoseComponent(GetMesh());
 	ShoesMesh->SetLeaderPoseComponent(GetMesh());
-	GlovesMesh->SetLeaderPoseComponent(GetMesh());
 	FaceMesh->SetLeaderPoseComponent(GetMesh());
 	// Load the default meshes for the character from Daniel Metahuman
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BodyMeshAsset(TEXT("/Game/MetaHumans/Daniel/Body/m_med_nrw_body"));
@@ -435,4 +432,4 @@ void ACustomCharacter::InitDefaultAttributes()
 	{
 		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	}
-}
+} 

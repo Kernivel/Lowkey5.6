@@ -10,7 +10,7 @@
 APlayableCharacter::APlayableCharacter()
 {
 	// Fetch input character mapping
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingObject(TEXT("/Game/FirstPerson/Input/IMC_Default"));
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingObject(TEXT("/Game/Characters/FirstPerson/Input/IMC_Default"));
 	if(InputMappingObject.Succeeded())
 	{
 		InputMapping = InputMappingObject.Object;
@@ -20,6 +20,7 @@ APlayableCharacter::APlayableCharacter()
 		UE_LOG(LogTemp, Error, TEXT("Failed to load InputMappingContext!"));
 		InputMapping = nullptr;
 	}
+
 	// Load Input Actions from helper function
 	APlayableCharacter::ConstructorLoadInputActions();
 
@@ -53,10 +54,11 @@ APlayableCharacter::APlayableCharacter()
 }
 
 // Don't use outside of the constructor!
+/* Input Action that the c++ code need to work */
 void APlayableCharacter::ConstructorLoadInputActions()
 {
 	UE_LOG(LogTemp, Display, TEXT("Loading Input Actions..."));
-	static ConstructorHelpers::FObjectFinder<UInputAction> ShootAction(TEXT("/Game/FirstPerson/Input/Actions/IA_Shoot"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> ShootAction(TEXT("/Game/Characters/FirstPerson/Input/Actions/IA_Shoot"));
 	if (ShootAction.Succeeded())
 	{
 		Shoot = ShootAction.Object;
@@ -131,7 +133,7 @@ void APlayableCharacter::InitAbilitySystemComponent()
 
 				// Maintenant initialiser les attributs par défaut
 				InitDefaultAttributes();
-
+				GiveDefaultAbilities();
 				UE_LOG(LogTemp, Log, TEXT("GAS initialized successfully!"));
 			}
 			else
@@ -141,6 +143,7 @@ void APlayableCharacter::InitAbilitySystemComponent()
 			}
 		});
 }
+
 
 void APlayableCharacter::PossessedBy(AController* NewController)
 {
@@ -163,6 +166,7 @@ void APlayableCharacter::RetryInitAbilitySystem()
 					AbilitySystemComponent->InitAbilityActorInfo(CustomPlayerState, this);
 					AttributeSet = CustomPlayerState->GetAttributeSet();
 					InitDefaultAttributes();
+					GiveDefaultAbilities();
 					UE_LOG(LogTemp, Log, TEXT("GAS initialized on retry!"));
 				}
 				else
@@ -177,7 +181,6 @@ void APlayableCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	InitAbilitySystemComponent();
-	//InitDefaultAttributes();
 }
 
 void APlayableCharacter::OnConstruction(const FTransform& Transform)

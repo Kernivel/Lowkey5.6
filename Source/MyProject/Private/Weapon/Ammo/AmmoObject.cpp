@@ -13,3 +13,19 @@ bool UAmmoObject::InitializeData(const FAmmoData& AmmoData)
 	/* Set the Weapon specific stats */
 	return true;
 }
+
+void UAmmoObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	DOREPLIFETIME(UAmmoObject, AmmoCount);
+	DOREPLIFETIME(UAmmoObject, WeaponType);
+}
+
+void UAmmoObject::OnRep_AmmoCount()
+{
+	UE_LOG(LogTemp, Log, TEXT("AmmoCount replicated: %d"), AmmoCount);
+}
+
+void UAmmoObject::OnRep_WeaponType()
+{
+	UE_LOG(LogTemp, Log, TEXT("WeaponType replicated: %s"), *UEnum::GetValueAsString(WeaponType));
+}
