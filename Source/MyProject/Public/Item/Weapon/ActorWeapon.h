@@ -3,29 +3,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
-#include "Item/ActorItemComponent.h"
-#include "ActorWeaponComponent.generated.h"
+#include "Item/ActorItem.h"
+#include "ActorWeapon.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class MYPROJECT_API UActorWeaponComponent : public UActorItemComponent
+class MYPROJECT_API AActorWeapon : public AActorItem
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UActorWeaponComponent();
+	AActorWeapon();
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	USkeletalMeshComponent* FirstPersonWeaponSkelMesh;
+	UPROPERTY(BlueprintReadWrite)
+	USkeletalMeshComponent* ThirdPersonWeaponSkelMesh;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void Tick(float DeltaTime) override;
 
 		
 	

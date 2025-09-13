@@ -256,9 +256,10 @@ void APlayableCharacter::ScanForInteractable()
 		{
 			this->CurrentLookedAtItemPickup = HitItem; // Return the first item found
 		}
+			/* Implement interactible object detection in an else if */
 		else
 		{
-			/* Implement interactible object detection */
+			this->CurrentLookedAtItemPickup = nullptr; // No item found
 		}
 	}
 }
