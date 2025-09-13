@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item.h"
-#include "Weapon/WeaponObject.h"
+#include "Item/Item.h"
+#include "Item/Weapon/WeaponObject.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 

@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
-#include "Weapon/WeaponSaveStruct.h"
+#include "Item/Weapon/WeaponSaveStruct.h"
 #include "PlayerSave.generated.h"
 
 UCLASS(Blueprintable, BlueprintType)

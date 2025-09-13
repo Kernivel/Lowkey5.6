@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
-#include "ItemObject.h"
+#include "Item/ItemObject.h"
 #include "Item.generated.h"
 
 UCLASS(Blueprintable)

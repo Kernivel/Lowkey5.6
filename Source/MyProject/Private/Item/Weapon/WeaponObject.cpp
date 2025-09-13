@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapon/WeaponObject.h"
+#include "Item/Weapon/WeaponObject.h"
 
 bool UWeaponObject::InitializeData(const FWeaponData& WeaponData, FString RowId)
 {

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapon/Weapon.h"
+#include "Item/Weapon/Weapon.h"
 
 AWeapon::AWeapon(const FObjectInitializer& ObjectInitializer):
 	Super(ObjectInitializer.DoNotCreateDefaultSubobject(TEXT("ItemObject")))

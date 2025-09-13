@@ -1,5 +1,5 @@
 #pragma once
-#include "Weapon/Accessories/AccessoryObject.h"
+#include "Item/Weapon/Accessories/AccessoryObject.h"
 #include "MagazineObject.generated.h"
 
 UCLASS(BlueprintType)

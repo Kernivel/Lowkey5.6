@@ -8,9 +8,9 @@
 *Custom files includes  *
 *************************/
 //Weapons
-#include "Weapon/WeaponObject.h" // Include the header for ItemObject
-#include "Weapon/Weapon.h"
-#include "Weapon/WeaponType.h" // Include the header for WeaponType enum
+#include "Item/Weapon/WeaponObject.h" // Include the header for ItemObject
+#include "Item/Weapon/Weapon.h"
+#include "Item/Weapon/WeaponType.h" // Include the header for WeaponType enum
 // GAS
 #include "AbilitySystemInterface.h"
 

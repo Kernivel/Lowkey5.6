@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Item.h"
+#include "Item/Item.h"
 
 // Sets default values
 AItem::AItem(const FObjectInitializer& ObjectInitializer)

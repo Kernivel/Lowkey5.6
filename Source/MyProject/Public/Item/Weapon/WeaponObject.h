@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ItemObject.h"
+#include "Item/ItemObject.h"
 #include "WeaponStruct.h"
 #include "WeaponAnimationStruct.h"
-#include "WeaponType.h"
-#include "Accessories/AccessoryObject.h"
-#include "Accessories/MagazineObject.h"
+#include "Item/Weapon/WeaponType.h"
+#include "Item/Weapon/Accessories/AccessoryObject.h"
+#include "Item/Weapon/Accessories/MagazineObject.h"
 #include "Animation/AnimInstance.h"
 #include "WeaponObject.generated.h"
 

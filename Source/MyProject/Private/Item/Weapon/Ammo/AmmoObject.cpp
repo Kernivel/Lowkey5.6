@@ -1,4 +1,4 @@
-#include "Weapon/Ammo/AmmoObject.h"
+#include "Item/Weapon/Ammo/AmmoObject.h"
 
 bool UAmmoObject::InitializeData(const FAmmoData& AmmoData)
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/DataTable.h"
 #include "UObject/SoftObjectPtr.h"
-#include "Weapon/WeaponType.h"
+#include "Item/Weapon/WeaponType.h"
 #include "AmmoStruct.generated.h"
 
 USTRUCT(BlueprintType)

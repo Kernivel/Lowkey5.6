@@ -193,7 +193,7 @@ void APlayableCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	/* Scan in front of the player for collisions and if actor is a pickable item */
-	this->CurrentLookedAtItem = APlayableCharacter::ScanForPickableItems();
+	APlayableCharacter::ScanForInteractable();
 	this->LoopOverCurvePlaybacks(DeltaTime);
 }
 
@@ -237,7 +237,7 @@ void APlayableCharacter::InstanciateWeaponItem(UWeaponObject* Weapon) {
 	this->Inventory->SpawnWeaponItemAttachedToOwner(this, Weapon, true);
 }
 
-AItem* APlayableCharacter::ScanForPickableItems()
+void APlayableCharacter::ScanForInteractable()
 {
 	/* Scan for items in front of the player */
 	FHitResult HitResult;
@@ -251,14 +251,16 @@ AItem* APlayableCharacter::ScanForPickableItems()
 	{
 		//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1.f, 0, 1.f); // Draw a debug line for visualization
 		AActor* HitOwner = HitResult.GetComponent() ? HitResult.GetComponent()->GetOwner() : HitResult.GetActor();
-		AItem* HitItem = Cast<AItem>(HitOwner);
-		/* Check if HitItem is found and if the conditions to pick it up are complete */
-		if (HitItem && HitItem->bCanBePickedUp && !HitItem->bIsPickedUp)
+		AItemPickup* HitItem = Cast<AItemPickup>(HitOwner);
+		if (HitItem)
 		{
-			return HitItem; // Return the first item found
+			this->CurrentLookedAtItemPickup = HitItem; // Return the first item found
+		}
+		else
+		{
+			/* Implement interactible object detection */
 		}
 	}
-	return nullptr; // No item found
 }
 
 

@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ItemObject.h"
-#include "Weapon/WeaponType.h"
-#include "Weapon/Ammo/AmmoStruct.h"
+#include "Item/ItemObject.h"
+#include "Item/Weapon/WeaponType.h"
+#include "Item/Weapon/Ammo/AmmoStruct.h"
 #include "Net/UnrealNetwork.h"
 #include "AmmoObject.generated.h"
 

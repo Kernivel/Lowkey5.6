@@ -8,12 +8,12 @@
 
 #include "Net/UnrealNetwork.h"
 /* Custom includes */
-#include "Weapon/WeaponObject.h"
-#include "ItemObject.h"
-#include "Weapon/Ammo/AmmoObject.h"
-#include "Item.h"
-#include "Weapon/Weapon.h"
-#include "Weapon/Ammo/Ammo.h"
+#include "Item/Weapon/WeaponObject.h"
+#include "Item/ItemObject.h"
+#include "Item/Weapon/Ammo/AmmoObject.h"
+#include "Item/Item.h"
+#include "Item/Weapon/Weapon.h"
+#include "Item/Weapon/Ammo/Ammo.h"
 #include "InventoryComponent.generated.h"
 
 

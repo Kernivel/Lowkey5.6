@@ -15,6 +15,7 @@
 #include "Curves/CurveVector.h"
 #include "Camera/CameraComponent.h"
 
+#include "Item/ItemPickup.h"
 /* Recoil shakes */
 #include "Utils/LightWeaponFireCameraShake.h"
 
@@ -77,7 +78,7 @@ public:
 	*Scanning functions     *
 	*************************/
 	UFUNCTION(BlueprintCallable, Category = "Scanning")
-	AItem* ScanForPickableItems();
+	void ScanForInteractable();
 
 	/*************************
 	* Recoil		         *
@@ -121,7 +122,7 @@ protected:
 
 	/* Storing the current looked at Item */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scanning")
-	AItem* CurrentLookedAtItem = nullptr;
+	AItemPickup* CurrentLookedAtItemPickup = nullptr;
 
 	virtual void AttachWeaponToSocket(AWeapon* Weapon, FName SocketName) override;
 

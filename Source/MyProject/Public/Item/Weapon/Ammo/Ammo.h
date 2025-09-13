@@ -1,6 +1,6 @@
 #pragma once
-#include "Item.h"
-#include "AmmoObject.h"
+#include "Item/Item.h"
+#include "Item/Weapon/Ammo/AmmoObject.h"
 #include "Ammo.generated.h"
 
 UCLASS(Blueprintable)

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ItemObject.h"
-#include "Weapon/Accessories/AccessoryType.h"
+#include "Item/ItemObject.h"
+#include "Item/Weapon/Accessories/AccessoryType.h"
 #include "AccessoryObject.generated.h"
 
 /**

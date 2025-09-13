@@ -1,4 +1,4 @@
-#include "Weapon/Ammo/Ammo.h"
+#include "Item/Weapon/Ammo/Ammo.h"
 
 AAmmo::AAmmo(const FObjectInitializer& ObjectInitializer):
 	Super(ObjectInitializer.DoNotCreateDefaultSubobject(TEXT("ItemObject")))
