@@ -9,6 +9,8 @@
 // Constructor
 APlayableCharacter::APlayableCharacter()
 {
+	this->WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
+
 	// Fetch input character mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingObject(TEXT("/Game/Characters/FirstPerson/Input/IMC_Default"));
 	if(InputMappingObject.Succeeded())
@@ -20,7 +22,6 @@ APlayableCharacter::APlayableCharacter()
 		UE_LOG(LogTemp, Error, TEXT("Failed to load InputMappingContext!"));
 		InputMapping = nullptr;
 	}
-
 	// Load Input Actions from helper function
 	APlayableCharacter::ConstructorLoadInputActions();
 
@@ -268,7 +269,7 @@ void APlayableCharacter::ScanForInteractable()
 void APlayableCharacter::Fire()
 {
 	/* Call fire function on currently equiped weapon */
-	if (!APlayableCharacter::IsCurrentWeaponValid())
+	if (!this->bHAsWeapon)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Fire: No weapons spawned! Cannot fire."));
 		return;
@@ -278,7 +279,7 @@ void APlayableCharacter::Fire()
 		if (this->bIsRunning || this->bIsReloading) {
 			return; // Do not fire while running
 		}
-		if (!this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex]->Fire())
+		if (!this->WeaponComponent->Fire())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Weapon is not ready to fire!"));
 			return; // Weapon is not ready to fire

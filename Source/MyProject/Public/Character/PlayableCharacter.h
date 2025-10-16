@@ -16,6 +16,7 @@
 #include "Camera/CameraComponent.h"
 
 #include "Item/ItemPickup.h"
+#include "Character/WeaponComponent.h"
 /* Recoil shakes */
 #include "Utils/LightWeaponFireCameraShake.h"
 
@@ -54,6 +55,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MetaHuman|Camera")
 	UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component|Weapon")
+	UWeaponComponent* WeaponComponent;
 
 	virtual void Fire() override;
 

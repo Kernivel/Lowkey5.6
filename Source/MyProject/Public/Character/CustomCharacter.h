@@ -77,6 +77,8 @@ public:
 	virtual void InstanciateAllWeaponItems();
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	virtual void InstanciateWeaponItem(UWeaponObject* Weapon); // Spawn weapon in the world
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	virtual bool IsCurrentWeaponValid() const; // Check if the current weapon is valid
 
 	/**********************
 	* Shoot functions  *
@@ -99,11 +101,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	virtual void EndWalk(); // Function to begin sprinting
 
-	/*************************
-	* Validations functions  *
-	**************************/
-	UFUNCTION(BlueprintCallable, Category = "Validation")
-	virtual bool IsCurrentWeaponValid() const; // Check if the current weapon is valid
 
 	/**********************
 	* Reload functions    *
@@ -138,7 +135,8 @@ public:
 	/**********************
 	* Actions variables    *
 	***********************/
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	bool bHAsWeapon = false; // Boolean to check if the has a weapon
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aiming")
 	bool bIsAiming = false; // Boolean to check if the character is aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Action")

@@ -187,6 +187,11 @@ void ACustomCharacter::InstanciateWeaponItem(UWeaponObject* Weapon){
 	this->Inventory->SpawnWeaponItemAttachedToOwner(this, Weapon, false);
 }
 
+bool ACustomCharacter::IsCurrentWeaponValid() const
+{
+	return false;
+}
+
 
 /*******************************************
 * Socket Functions                         *
@@ -391,36 +396,6 @@ void ACustomCharacter::GiveDefaultAbilities()
 
 }
 
-bool ACustomCharacter::IsCurrentWeaponValid() const
-{
-	// Check proper initialization of the Inventory component
-	if(this->Inventory == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("IsCurrentWeaponValid: Inventory is null. Cannot check current weapon validity."));
-		return false; // Inventory is not initialized
-	}
-	if(!this->Inventory->InventoryWeapons.IsValidIndex(this->Inventory->CurrentlyEquipedIndex))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("IsCurrentWeaponValid: CurrentlyEquipedIndex is out of bounds. Cannot check current weapon validity."));
-		return false; // Index is out of bounds
-	}
-	if (this->Inventory->SpawnedWeapons.IsValidIndex(this->Inventory->CurrentlyEquipedIndex))
-	{
-		AWeapon* CurrentWeapon = this->Inventory->SpawnedWeapons[this->Inventory->CurrentlyEquipedIndex];
-
-		if(CurrentWeapon)
-		{
-			UWeaponObject* WeaponObject = CurrentWeapon->GetWeaponObject();
-			if (!IsValid(WeaponObject))
-			{
-				UE_LOG(LogTemp, Error, TEXT("IsCurrentWeaponValid: WeaponObject is null for weapon: %s. "), *CurrentWeapon->GetName());
-				return false; // Invalid weapon object
-			}
-			return true; // The current weapon is valid and the index is within bounds
-		}
-	}
-	return false; // The current weapon is not valid or the index is out of bounds
-}
 
 void ACustomCharacter::InitDefaultAttributes()
 {
